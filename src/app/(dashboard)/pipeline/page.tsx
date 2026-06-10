@@ -207,7 +207,10 @@ export default function PipelinePage() {
         </div>
 
         {/* Kanban Board Layout */}
-        <div className="flex-1 flex gap-4 overflow-x-auto pb-4 pr-1 scrollbar-thin select-none">
+        <div 
+          style={{ transform: 'rotateX(180deg)' }}
+          className="flex-1 flex gap-4 overflow-x-auto pb-4 pr-1 scrollbar-thin select-none"
+        >
           {KANBAN_STAGES.map(stage => {
             const stageOpps = opportunities.filter(o => o.stage === stage.id);
             const totalVal = getStageTotalValue(stage.id);
@@ -217,6 +220,7 @@ export default function PipelinePage() {
                 key={stage.id}
                 onDragOver={handleDragOver}
                 onDrop={() => handleDrop(stage.id)}
+                style={{ transform: 'rotateX(180deg)' }}
                 className={`w-72 rounded-2xl border border-border flex flex-col shrink-0 overflow-hidden ${stage.color} border-t-4 transition-colors duration-200`}
               >
                 {/* Column Header */}
