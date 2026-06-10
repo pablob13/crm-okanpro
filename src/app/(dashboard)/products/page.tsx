@@ -36,7 +36,7 @@ export default function ProductsPage() {
     description: '',
     sku: '',
     price: '',
-    category: 'Paneles Solares',
+    category: 'Sonido',
     active: true
   });
   const [submitting, setSubmitting] = useState(false);
@@ -73,7 +73,7 @@ export default function ProductsPage() {
       description: '',
       sku: '',
       price: '',
-      category: 'Paneles Solares',
+      category: 'Sonido',
       active: true
     });
     setEditingProduct(null);
@@ -168,7 +168,7 @@ export default function ProductsPage() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const categories = ['Todas', 'Paneles Solares', 'Inversores', 'Soportes', 'Cableado', 'Accesorios', 'Otros'];
+  const categories = ['Todas', 'Sonido', 'Luces', 'Seguridad', 'Automatizacion', 'Otros'];
 
   return (
     <AppLayout>
@@ -178,7 +178,7 @@ export default function ProductsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-extrabold text-foreground tracking-tight">Catalogo de Productos</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Administra los productos, equipos de energia solar y servicios disponibles en el CRM.</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Administra los productos de sonido, iluminacion, camaras de seguridad y automatizacion del CRM.</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -402,7 +402,7 @@ export default function ProductsPage() {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="ej. Panel Solar Monocristalino 550W"
+                  placeholder="ej. Bocina Inteligente Sonos One Gen 2"
                   className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                   required
                 />
@@ -416,7 +416,7 @@ export default function ProductsPage() {
                     name="sku"
                     value={formData.sku}
                     onChange={handleInputChange}
-                    placeholder="ej. PAN-MON-550"
+                    placeholder="ej. SON-ONE-G2"
                     className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono"
                   />
                 </div>
@@ -444,11 +444,10 @@ export default function ProductsPage() {
                     onChange={handleInputChange}
                     className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer"
                   >
-                    <option value="Paneles Solares">Paneles Solares</option>
-                    <option value="Inversores">Inversores</option>
-                    <option value="Soportes">Soportes</option>
-                    <option value="Cableado">Cableado</option>
-                    <option value="Accesorios">Accesorios</option>
+                    <option value="Sonido">Sonido</option>
+                    <option value="Luces">Luces</option>
+                    <option value="Seguridad">Seguridad</option>
+                    <option value="Automatizacion">Automatizacion</option>
                     <option value="Otros">Otros</option>
                   </select>
                 </div>
