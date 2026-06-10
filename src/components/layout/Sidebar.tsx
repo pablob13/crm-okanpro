@@ -20,7 +20,8 @@ import {
   Briefcase,
   Receipt,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Handshake
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -41,6 +42,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const menuItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Prospectos (Leads)', href: '/leads', icon: Users },
+    { name: 'Clientes', href: '/clients', icon: Handshake },
     { name: 'Pipeline de Ventas', href: '/pipeline', icon: Kanban },
     { name: 'Tareas', href: '/tasks', icon: CheckSquare },
     { 
