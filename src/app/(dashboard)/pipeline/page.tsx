@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { opportunitiesService } from '@/services/opportunitiesService';
 import { leadsService } from '@/services/leadsService';
@@ -16,7 +16,9 @@ import {
   X,
   Target,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -34,6 +36,20 @@ export default function PipelinePage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scrollAmount = 320; // Aproximadamente el ancho de una columna (288px + 16px gap + margen)
+    const targetScroll = container.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
+    container.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth'
+    });
+  };
   
   // Modales
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -206,94 +222,118 @@ export default function PipelinePage() {
           </button>
         </div>
 
-        {/* Kanban Board Layout */}
-        <div 
-          style={{ transform: 'rotateX(180deg)' }}
-          className="flex-1 flex gap-4 overflow-x-auto pb-4 pr-1 custom-scrollbar select-none"
-        >
-          {KANBAN_STAGES.map(stage => {
-            const stageOpps = opportunities.filter(o => o.stage === stage.id);
-            const totalVal = getStageTotalValue(stage.id);
+        {/* Contenedor del Tablero con Botones de Desplazamiento */}
+        <div className="relative flex-1 flex flex-col overflow-hidden group">
+          {/* Flecha de Navegación Izquierda */}
+          <button
+            type="button"
+            onClick={() => handleScroll('left')}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-border bg-card/60 backdrop-blur-md text-muted-foreground hover:text-foreground opacity-15 group-hover:opacity-75 hover:opacity-100 transition-all duration-300 shadow-lg hover:bg-card cursor-pointer"
+            title="Deslizar a la izquierda"
+          >
+            <ChevronLeft size={16} />
+          </button>
 
-            return (
-              <div
-                key={stage.id}
-                onDragOver={handleDragOver}
-                onDrop={() => handleDrop(stage.id)}
-                style={{ transform: 'rotateX(180deg)' }}
-                className={`w-72 rounded-2xl border border-border flex flex-col shrink-0 overflow-hidden ${stage.color} border-t-4 transition-colors duration-200`}
-              >
-                {/* Column Header */}
-                <div className="p-4 border-b border-border bg-card/65 flex flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-foreground truncate">{stage.title}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
-                      {stageOpps.length}
+          {/* Flecha de Navegación Derecha */}
+          <button
+            type="button"
+            onClick={() => handleScroll('right')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full border border-border bg-card/60 backdrop-blur-md text-muted-foreground hover:text-foreground opacity-15 group-hover:opacity-75 hover:opacity-100 transition-all duration-300 shadow-lg hover:bg-card cursor-pointer"
+            title="Deslizar a la derecha"
+          >
+            <ChevronRight size={16} />
+          </button>
+
+          {/* Kanban Board Layout */}
+          <div 
+            ref={scrollContainerRef}
+            style={{ transform: 'rotateX(180deg)' }}
+            className="flex-1 flex gap-4 overflow-x-auto pb-4 pr-1 custom-scrollbar select-none"
+          >
+            {KANBAN_STAGES.map(stage => {
+              const stageOpps = opportunities.filter(o => o.stage === stage.id);
+              const totalVal = getStageTotalValue(stage.id);
+
+              return (
+                <div
+                  key={stage.id}
+                  onDragOver={handleDragOver}
+                  onDrop={() => handleDrop(stage.id)}
+                  style={{ transform: 'rotateX(180deg)' }}
+                  className={`w-72 rounded-2xl border border-border flex flex-col shrink-0 overflow-hidden ${stage.color} border-t-4 transition-colors duration-200`}
+                >
+                  {/* Column Header */}
+                  <div className="p-4 border-b border-border bg-card/65 flex flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-foreground truncate">{stage.title}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                        {stageOpps.length}
+                      </span>
+                    </div>
+                    <span className="text-xs font-extrabold text-foreground mt-1">
+                      {formatCurrency(totalVal)}
                     </span>
                   </div>
-                  <span className="text-xs font-extrabold text-foreground mt-1">
-                    {formatCurrency(totalVal)}
-                  </span>
-                </div>
 
-                {/* Column Cards Container */}
-                <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-[150px]">
-                  {loading ? (
-                    <div className="space-y-3">
-                      {[...Array(2)].map((_, i) => (
-                        <div key={i} className="h-28 rounded-xl bg-secondary/35 animate-pulse border border-border" />
-                      ))}
-                    </div>
-                  ) : stageOpps.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-center p-6 text-muted-foreground/30">
-                      <Target size={24} />
-                    </div>
-                  ) : (
-                    stageOpps.map(opp => (
-                      <div
-                        key={opp.id}
-                        draggable
-                        onDragStart={() => handleDragStart(opp.id)}
-                        className={`p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md hover:border-primary/40 transition-all cursor-grab active:cursor-grabbing ${
-                          draggingId === opp.id ? 'opacity-50 scale-95 border-dashed border-primary' : ''
-                        }`}
-                      >
-                        {/* Opp Title & Delete */}
-                        <div className="flex justify-between items-start gap-2">
-                          <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug">{opp.title}</h4>
-                          <button
-                            onClick={(e) => handleDeleteOpp(opp.id, e)}
-                            className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer shrink-0"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        </div>
-
-                        {/* Value */}
-                        <p className="text-sm font-extrabold text-foreground mt-2">{formatCurrency(opp.value)}</p>
-
-                        {/* Associated Lead Name */}
-                        {opp.lead && (
-                          <div className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground truncate">
-                            <Building2 size={10} className="shrink-0" />
-                            <span className="font-medium truncate">{opp.lead.first_name} {opp.lead.last_name}</span>
-                          </div>
-                        )}
-
-                        {/* Close Date */}
-                        {opp.close_date && (
-                          <div className="mt-1 flex items-center gap-1.5 text-[9px] text-muted-foreground">
-                            <Calendar size={10} className="shrink-0" />
-                            <span>Cierre: {new Date(opp.close_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>
-                          </div>
-                        )}
+                  {/* Column Cards Container */}
+                  <div className="flex-1 p-3 overflow-y-auto space-y-3 min-h-[150px]">
+                    {loading ? (
+                      <div className="space-y-3">
+                        {[...Array(2)].map((_, i) => (
+                          <div key={i} className="h-28 rounded-xl bg-secondary/35 animate-pulse border border-border" />
+                        ))}
                       </div>
-                    ))
-                  )}
+                    ) : stageOpps.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-center p-6 text-muted-foreground/30">
+                        <Target size={24} />
+                      </div>
+                    ) : (
+                      stageOpps.map(opp => (
+                        <div
+                          key={opp.id}
+                          draggable
+                          onDragStart={() => handleDragStart(opp.id)}
+                          className={`p-4 rounded-xl border border-border bg-card shadow-sm hover:shadow-md hover:border-primary/40 transition-all cursor-grab active:cursor-grabbing ${
+                            draggingId === opp.id ? 'opacity-50 scale-95 border-dashed border-primary' : ''
+                          }`}
+                        >
+                          {/* Opp Title & Delete */}
+                          <div className="flex justify-between items-start gap-2">
+                            <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug">{opp.title}</h4>
+                            <button
+                              onClick={(e) => handleDeleteOpp(opp.id, e)}
+                              className="p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded transition-colors cursor-pointer shrink-0"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+
+                          {/* Value */}
+                          <p className="text-sm font-extrabold text-foreground mt-2">{formatCurrency(opp.value)}</p>
+
+                          {/* Associated Lead Name */}
+                          {opp.lead && (
+                            <div className="mt-3 flex items-center gap-1.5 text-[10px] text-muted-foreground truncate">
+                              <Building2 size={10} className="shrink-0" />
+                              <span className="font-medium truncate">{opp.lead.first_name} {opp.lead.last_name}</span>
+                            </div>
+                          )}
+
+                          {/* Close Date */}
+                          {opp.close_date && (
+                            <div className="mt-1 flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                              <Calendar size={10} className="shrink-0" />
+                              <span>Cierre: {new Date(opp.close_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
