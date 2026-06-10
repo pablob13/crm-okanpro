@@ -410,3 +410,32 @@ USING (true);
 -- Agregar columna de imagen de forma idempotente para bases de datos ya creadas
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS image_url TEXT;
 
+-- 10. STORAGE BUCKET FOR PRODUCT IMAGES (Bucket de imágenes de productos)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('product-images', 'product-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Políticas de seguridad para storage.objects asociadas al bucket product-images
+DROP POLICY IF EXISTS "Acceso publico a imagenes de productos" ON storage.objects;
+CREATE POLICY "Acceso publico a imagenes de productos"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'product-images');
+
+DROP POLICY IF EXISTS "Permitir subida de imagenes a autenticados" ON storage.objects;
+CREATE POLICY "Permitir subida de imagenes a autenticados"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'product-images');
+
+DROP POLICY IF EXISTS "Permitir actualizacion de imagenes a autenticados" ON storage.objects;
+CREATE POLICY "Permitir actualizacion de imagenes a autenticados"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'product-images');
+
+DROP POLICY IF EXISTS "Permitir borrado de imagenes a autenticados" ON storage.objects;
+CREATE POLICY "Permitir borrado de imagenes a autenticados"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (bucket_id = 'product-images');
+

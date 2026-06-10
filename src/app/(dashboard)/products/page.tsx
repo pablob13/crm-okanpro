@@ -42,6 +42,11 @@ export default function ProductsPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // Estados para modo de imagen y archivos locales
+  const [imageMode, setImageMode] = useState<'url' | 'file'>('url');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string>('');
+
   useEffect(() => {
     loadProducts();
   }, []);
@@ -68,6 +73,24 @@ export default function ProductsPage() {
     setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('El archivo es demasiado grande. El limite es de 2MB.');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFilePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -79,6 +102,9 @@ export default function ProductsPage() {
       image_url: ''
     });
     setEditingProduct(null);
+    setImageMode('url');
+    setSelectedFile(null);
+    setFilePreview('');
   };
 
   const handleOpenCreateModal = () => {
@@ -97,6 +123,9 @@ export default function ProductsPage() {
       active: product.active,
       image_url: product.image_url || ''
     });
+    setImageMode(product.image_url ? 'url' : 'url');
+    setSelectedFile(null);
+    setFilePreview('');
     setIsOpen(true);
   };
 
@@ -120,6 +149,13 @@ export default function ProductsPage() {
 
     setSubmitting(true);
     try {
+      let finalImageUrl = formData.image_url.trim() || null;
+
+      // Si el modo es archivo y hay un archivo seleccionado, subirlo
+      if (imageMode === 'file' && selectedFile) {
+        finalImageUrl = await productsService.uploadProductImage(selectedFile);
+      }
+
       const productPayload = {
         name: formData.name.trim(),
         description: formData.description.trim() || null,
@@ -127,7 +163,7 @@ export default function ProductsPage() {
         price: Number(formData.price),
         category: formData.category,
         active: formData.active,
-        image_url: formData.image_url.trim() || null
+        image_url: finalImageUrl
       };
 
       if (editingProduct) {
@@ -491,58 +527,136 @@ export default function ProductsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Imagen del Producto (URL)</label>
-                <div className="flex gap-3 items-center">
-                  <input
-                    type="url"
-                    name="image_url"
-                    value={formData.image_url}
-                    onChange={handleInputChange}
-                    placeholder="https://ejemplo.com/imagen.jpg"
-                    className="flex-1 p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                  />
-                  {formData.image_url && (
-                    <div className="w-12 h-12 rounded-xl border border-border overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
-                      <img 
-                        src={formData.image_url} 
-                        alt="Vista previa" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).onerror = null;
-                          (e.target as HTMLImageElement).src = '';
-                        }}
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Imagen del Producto</label>
+                
+                {/* Selector de Modo */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setImageMode('url')}
+                    className={`px-3 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer ${
+                      imageMode === 'url' 
+                        ? 'bg-primary text-primary-foreground border-primary' 
+                        : 'bg-secondary text-muted-foreground border-border hover:bg-secondary/80'
+                    }`}
+                  >
+                    Enlace de Imagen (URL)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageMode('file')}
+                    className={`px-3 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer ${
+                      imageMode === 'file' 
+                        ? 'bg-primary text-primary-foreground border-primary' 
+                        : 'bg-secondary text-muted-foreground border-border hover:bg-secondary/80'
+                    }`}
+                  >
+                    Subir Archivo
+                  </button>
+                </div>
+
+                {imageMode === 'url' ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-3 items-center">
+                      <input
+                        type="url"
+                        name="image_url"
+                        value={formData.image_url}
+                        onChange={handleInputChange}
+                        placeholder="https://ejemplo.com/imagen.jpg"
+                        className="flex-1 p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                       />
+                      {formData.image_url && (
+                        <div className="w-12 h-12 rounded-xl border border-border overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
+                          <img 
+                            src={formData.image_url} 
+                            alt="Vista previa" 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).onerror = null;
+                              (e.target as HTMLImageElement).src = '';
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                {/* Plantillas de Imagen */}
-                <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[10px] text-muted-foreground mr-1">Preajustes rápidos:</span>
-                  {[
-                    { name: 'Sonos', url: 'https://images.unsplash.com/photo-1610484826967-09c5720778c7?w=150&auto=format&fit=crop&q=60' },
-                    { name: 'Lutron', url: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=150&auto=format&fit=crop&q=60' },
-                    { name: 'Hikvision', url: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=150&auto=format&fit=crop&q=60' },
-                    { name: 'Control4', url: 'https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?w=150&auto=format&fit=crop&q=60' }
-                  ].map(preset => (
-                    <button
-                      key={preset.name}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, image_url: preset.url }))}
-                      className="px-2.5 py-1 bg-secondary hover:bg-secondary/80 text-foreground text-[10px] font-semibold rounded-lg border border-border transition-colors cursor-pointer"
-                    >
-                      {preset.name}
-                    </button>
-                  ))}
-                  {formData.image_url && (
-                    <button
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
-                      className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/20 transition-colors cursor-pointer"
-                    >
-                      Limpiar
-                    </button>
-                  )}
-                </div>
+                    {/* Plantillas de Imagen */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] text-muted-foreground mr-1">Preajustes rápidos:</span>
+                      {[
+                        { name: 'Sonos', url: 'https://images.unsplash.com/photo-1610484826967-09c5720778c7?w=150&auto=format&fit=crop&q=60' },
+                        { name: 'Lutron', url: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=150&auto=format&fit=crop&q=60' },
+                        { name: 'Hikvision', url: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=150&auto=format&fit=crop&q=60' },
+                        { name: 'Control4', url: 'https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?w=150&auto=format&fit=crop&q=60' }
+                      ].map(preset => (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, image_url: preset.url }))}
+                          className="px-2 py-0.5 bg-secondary hover:bg-secondary/80 text-foreground text-[10px] font-semibold rounded-lg border border-border transition-colors cursor-pointer"
+                        >
+                          {preset.name}
+                        </button>
+                      ))}
+                      {formData.image_url && (
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                          className="px-2 py-0.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/20 transition-colors cursor-pointer"
+                        >
+                          Limpiar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-3 items-center">
+                      <div className="flex-1 border border-dashed border-border rounded-xl p-3.5 text-center hover:bg-secondary/20 transition-all relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="space-y-0.5 text-muted-foreground">
+                          <p className="font-semibold text-[10px]">Arrastra tu imagen o haz clic aquí</p>
+                          <p className="text-[8px]">PNG, JPG, WEBP de hasta 2MB</p>
+                        </div>
+                      </div>
+                      {(filePreview || formData.image_url) && (
+                        <div className="w-12 h-12 rounded-xl border border-border overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
+                          <img 
+                            src={filePreview || formData.image_url} 
+                            alt="Vista previa archivo" 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).onerror = null;
+                              (e.target as HTMLImageElement).src = '';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {selectedFile && (
+                      <div className="flex items-center justify-between bg-secondary/50 px-3 py-1.5 rounded-xl border border-border">
+                        <span className="text-[10px] font-mono text-foreground truncate max-w-[250px]">
+                          {selectedFile.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setFilePreview('');
+                          }}
+                          className="text-red-400 hover:text-red-500 text-[10px] font-bold cursor-pointer transition-colors"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
