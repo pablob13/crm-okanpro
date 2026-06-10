@@ -209,7 +209,7 @@ export default function PipelinePage() {
         {/* Kanban Board Layout */}
         <div 
           style={{ transform: 'rotateX(180deg)' }}
-          className="flex-1 flex gap-4 overflow-x-auto pb-4 pr-1 scrollbar-thin select-none"
+          className="flex-1 flex gap-4 overflow-x-auto pb-4 pr-1 custom-scrollbar select-none"
         >
           {KANBAN_STAGES.map(stage => {
             const stageOpps = opportunities.filter(o => o.stage === stage.id);
