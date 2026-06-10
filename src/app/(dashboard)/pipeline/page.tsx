@@ -223,7 +223,7 @@ export default function PipelinePage() {
         </div>
 
         {/* Contenedor del Tablero con Botones de Desplazamiento */}
-        <div className="relative flex-1 flex flex-col overflow-hidden group">
+        <div className="relative flex-1 flex flex-col overflow-hidden group px-10">
           {/* Flecha de Navegación Izquierda */}
           <button
             type="button"
