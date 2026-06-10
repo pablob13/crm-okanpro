@@ -96,3 +96,30 @@ export interface Manual {
   created_at: string;
   updated_at: string;
 }
+
+export type ExpenseStatus = 'pendiente' | 'conciliado';
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  category: string;
+  status: ExpenseStatus;
+  payment_method: string;
+  receipt_url?: string | null;
+  reconciliation_date?: string | null;
+  reconciled_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BankMovement {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  reconciled: boolean;
+  expense_id?: string | null;
+  created_at: string;
+}

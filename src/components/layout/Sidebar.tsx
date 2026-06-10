@@ -17,7 +17,10 @@ import {
   X,
   BookOpen,
   Shield,
-  Briefcase
+  Briefcase,
+  Receipt,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,12 +32,25 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const pathname = usePathname();
   const { user, realUser, simulatedRole, setSimulatedRole, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({});
+
+  const toggleSubmenu = (name: string) => {
+    setOpenSubmenus(prev => ({ ...prev, [name]: !prev[name] }));
+  };
 
   const menuItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Prospectos (Leads)', href: '/leads', icon: Users },
     { name: 'Pipeline de Ventas', href: '/pipeline', icon: Kanban },
     { name: 'Tareas', href: '/tasks', icon: CheckSquare },
+    { 
+      name: 'Gastos', 
+      icon: Receipt,
+      submenu: [
+        { name: 'Registro de Gastos', href: '/expenses' },
+        { name: 'Conciliacion Bancaria', href: '/expenses/reconciliation' }
+      ]
+    },
     { name: 'Manuales y Docs', href: '/manuals', icon: BookOpen },
     { name: 'Configuración', href: '/settings', icon: Settings },
   ];
@@ -69,12 +85,68 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
       {/* Navigation Links */}
       <nav className="flex-1 px-4 py-6 space-y-1">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href;
           const Icon = item.icon;
+          
+          if (item.submenu) {
+            const isSubmenuActive = item.submenu.some(sub => pathname === sub.href);
+            const isOpen = openSubmenus[item.name] || isSubmenuActive;
+            
+            return (
+              <div key={item.name} className="flex flex-col space-y-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (collapsed) {
+                      setCollapsed(false);
+                    }
+                    toggleSubmenu(item.name);
+                  }}
+                  className={`flex items-center justify-between w-full px-3 py-3 rounded-xl transition-all-custom group cursor-pointer text-left ${
+                    isSubmenuActive 
+                      ? 'bg-primary/10 text-primary font-semibold' 
+                      : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={20} className={isSubmenuActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground transition-colors'} />
+                    {!collapsed && <span className="text-sm">{item.name}</span>}
+                  </div>
+                  {!collapsed && (
+                    isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                  )}
+                </button>
+                
+                {/* Submenu Items */}
+                {isOpen && !collapsed && (
+                  <div className="pl-6 pr-2 py-1 flex flex-col space-y-1 border-l-2 border-primary/20 ml-5 animate-fade-in">
+                    {item.submenu.map((sub) => {
+                      const isSubActive = pathname === sub.href;
+                      return (
+                        <Link
+                          key={sub.name}
+                          href={sub.href}
+                          onClick={() => setMobileOpen(false)}
+                          className={`px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer ${
+                            isSubActive 
+                              ? 'bg-primary text-primary-foreground font-medium shadow-sm' 
+                              : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                          }`}
+                        >
+                          {sub.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
-              href={item.href}
+              href={item.href || '#'}
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all-custom group cursor-pointer ${
                 isActive 

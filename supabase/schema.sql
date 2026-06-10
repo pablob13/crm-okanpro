@@ -288,3 +288,80 @@ ON public.manuals FOR DELETE
 TO authenticated 
 USING (true);
 
+-- 7. EXPENSES TABLE (Gastos)
+CREATE TABLE IF NOT EXISTS public.expenses (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    description TEXT NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    date DATE NOT NULL,
+    category TEXT NOT NULL,
+    status TEXT DEFAULT 'pendiente' CHECK (status IN ('pendiente', 'conciliado')),
+    payment_method TEXT NOT NULL,
+    receipt_url TEXT,
+    reconciliation_date TIMESTAMP WITH TIME ZONE,
+    reconciled_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Habilitar RLS
+ALTER TABLE public.expenses ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de RLS para expenses
+DROP POLICY IF EXISTS "Permitir lectura de gastos a autenticados" ON public.expenses;
+CREATE POLICY "Permitir lectura de gastos a autenticados" 
+ON public.expenses FOR SELECT 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir inserción de gastos a autenticados" ON public.expenses;
+CREATE POLICY "Permitir inserción de gastos a autenticados" 
+ON public.expenses FOR INSERT 
+TO authenticated 
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir actualización de gastos a autenticados" ON public.expenses;
+CREATE POLICY "Permitir actualización de gastos a autenticados" 
+ON public.expenses FOR UPDATE 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir eliminación de gastos a autenticados" ON public.expenses;
+CREATE POLICY "Permitir eliminación de gastos a autenticados" 
+ON public.expenses FOR DELETE 
+TO authenticated 
+USING (true);
+
+-- 8. BANK MOVEMENTS TABLE (Movimientos Bancarios)
+CREATE TABLE IF NOT EXISTS public.bank_movements (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    date DATE NOT NULL,
+    description TEXT NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    reconciled BOOLEAN DEFAULT false NOT NULL,
+    expense_id UUID REFERENCES public.expenses(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Habilitar RLS
+ALTER TABLE public.bank_movements ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de RLS para bank_movements
+DROP POLICY IF EXISTS "Permitir lectura de movimientos a autenticados" ON public.bank_movements;
+CREATE POLICY "Permitir lectura de movimientos a autenticados" 
+ON public.bank_movements FOR SELECT 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir inserción de movimientos a autenticados" ON public.bank_movements;
+CREATE POLICY "Permitir inserción de movimientos a autenticados" 
+ON public.bank_movements FOR INSERT 
+TO authenticated 
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir actualización de movimientos a autenticados" ON public.bank_movements;
+CREATE POLICY "Permitir actualización de movimientos a autenticados" 
+ON public.bank_movements FOR UPDATE 
+TO authenticated 
+USING (true);
+

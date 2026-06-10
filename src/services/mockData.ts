@@ -1,4 +1,4 @@
-import { Profile, Lead, Opportunity, Task, Interaction, Manual } from '@/types';
+import { Profile, Lead, Opportunity, Task, Interaction, Manual, Expense, BankMovement } from '@/types';
 
 // Perfil de prueba por defecto
 export const MOCK_USER: Profile = {
@@ -269,6 +269,90 @@ export const INITIAL_USERS: Profile[] = [
   }
 ];
 
+// Gastos iniciales para el modo demo
+export const INITIAL_EXPENSES: Expense[] = [
+  {
+    id: 'exp-1',
+    description: 'Suscripcion de Software CRM',
+    amount: 1250.00,
+    date: '2026-06-05',
+    category: 'Software',
+    status: 'pendiente',
+    payment_method: 'Tarjeta Corporativa',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'exp-2',
+    description: 'Comida de negocios con Construcciones Alfa',
+    amount: 320.50,
+    date: '2026-06-02',
+    category: 'Comidas',
+    status: 'pendiente',
+    payment_method: 'Tarjeta Corporativa',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'exp-3',
+    description: 'Renta de Oficina Junio',
+    amount: 15000.00,
+    date: '2026-06-01',
+    category: 'Oficina',
+    status: 'pendiente',
+    payment_method: 'Transferencia',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'exp-4',
+    description: 'Papeleria y Hojas de oficina',
+    amount: 250.00,
+    date: '2026-06-07',
+    category: 'Oficina',
+    status: 'pendiente',
+    payment_method: 'Efectivo',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+];
+
+// Movimientos de cuenta bancaria/tarjeta iniciales para el modo demo
+export const INITIAL_BANK_MOVEMENTS: BankMovement[] = [
+  {
+    id: 'bm-1',
+    date: '2026-06-05',
+    description: 'PAGO MENSUAL OKANPRO CRM',
+    amount: 1250.00,
+    reconciled: false,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'bm-2',
+    date: '2026-06-03',
+    description: 'REST EL CARDENAL COMIDAS',
+    amount: 320.50,
+    reconciled: false,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'bm-3',
+    date: '2026-06-01',
+    description: 'TRANSFERENCIA RENTA OFICINA',
+    amount: 15000.00,
+    reconciled: false,
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'bm-4',
+    date: '2026-06-06',
+    description: 'OXXO CONSUMO Y MATERIAL',
+    amount: 450.00,
+    reconciled: false,
+    created_at: new Date().toISOString(),
+  }
+];
+
 // Utilidad de almacenamiento en LocalStorage para modo Demo
 const STORAGE_KEYS = {
   LEADS: 'okanpro_crm_leads',
@@ -277,7 +361,9 @@ const STORAGE_KEYS = {
   INTERACTIONS: 'okanpro_crm_interactions',
   USER: 'okanpro_crm_user',
   MANUALS: 'okanpro_crm_manuals',
-  USERS: 'okanpro_crm_users'
+  USERS: 'okanpro_crm_users',
+  EXPENSES: 'okanpro_crm_expenses',
+  BANK_MOVEMENTS: 'okanpro_crm_bank_movements'
 };
 
 export const mockDb = {
@@ -386,6 +472,36 @@ export const mockDb = {
     }
   },
 
+  getExpenses: (): Expense[] => {
+    if (typeof window === 'undefined') return INITIAL_EXPENSES;
+    const data = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES));
+      return INITIAL_EXPENSES;
+    }
+    return JSON.parse(data);
+  },
+  saveExpenses: (expenses: Expense[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
+    }
+  },
+
+  getBankMovements: (): BankMovement[] => {
+    if (typeof window === 'undefined') return INITIAL_BANK_MOVEMENTS;
+    const data = localStorage.getItem(STORAGE_KEYS.BANK_MOVEMENTS);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEYS.BANK_MOVEMENTS, JSON.stringify(INITIAL_BANK_MOVEMENTS));
+      return INITIAL_BANK_MOVEMENTS;
+    }
+    return JSON.parse(data);
+  },
+  saveBankMovements: (movements: BankMovement[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.BANK_MOVEMENTS, JSON.stringify(movements));
+    }
+  },
+
   reset: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.LEADS);
@@ -395,6 +511,8 @@ export const mockDb = {
       localStorage.removeItem(STORAGE_KEYS.USER);
       localStorage.removeItem(STORAGE_KEYS.MANUALS);
       localStorage.removeItem(STORAGE_KEYS.USERS);
+      localStorage.removeItem(STORAGE_KEYS.EXPENSES);
+      localStorage.removeItem(STORAGE_KEYS.BANK_MOVEMENTS);
     }
   }
 };
