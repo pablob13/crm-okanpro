@@ -2,27 +2,58 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Profile } from '@/types';
+import { Profile, UserRole } from '@/types';
 import { authService } from '@/services/authService';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
 interface AuthContextType {
   user: Profile | null;
+  realUser: Profile | null;
   loading: boolean;
   isDemoMode: boolean;
   login: (email: string, password?: string) => Promise<void>;
   signup: (email: string, password?: string, fullName?: string) => Promise<void>;
   logout: () => Promise<void>;
+  simulatedRole: UserRole | null;
+  setSimulatedRole: (role: UserRole | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Profile | null>(null);
+  const [simulatedRole, setSimulatedRoleState] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
   const isDemoMode = !isSupabaseConfigured;
+
+  // Cargar rol simulado desde localStorage al iniciar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('okanpro_simulated_role');
+      if (saved === 'administrador' || saved === 'vendedor') {
+        setSimulatedRoleState(saved as UserRole);
+      }
+    }
+  }, []);
+
+  const setSimulatedRole = (role: UserRole | null) => {
+    setSimulatedRoleState(role);
+    if (typeof window !== 'undefined') {
+      if (role) {
+        localStorage.setItem('okanpro_simulated_role', role);
+      } else {
+        localStorage.removeItem('okanpro_simulated_role');
+      }
+    }
+  };
+
+  // Perfil calculado para toda la aplicación con override de rol si está simulado
+  const computedUser = user ? {
+    ...user,
+    role: simulatedRole || user.role
+  } : null;
 
   useEffect(() => {
     async function initAuth() {
@@ -51,18 +82,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const isAuthRoute = pathname === '/login' || pathname === '/register';
     const isPublicRoute = pathname.startsWith('/manuals/share/');
 
-    if (!user && !isAuthRoute && !isPublicRoute) {
+    if (!computedUser && !isAuthRoute && !isPublicRoute) {
       router.push('/login');
-    } else if (user && isAuthRoute) {
+    } else if (computedUser && isAuthRoute) {
       router.push('/');
     }
-  }, [user, loading, pathname, router]);
+  }, [computedUser, loading, pathname, router]);
 
   const login = async (email: string, password?: string) => {
     setLoading(true);
     try {
       const loggedUser = await authService.login(email, password);
       setUser(loggedUser);
+      setSimulatedRole(null); // Reiniciar simulación al loguearse
       router.push('/');
     } catch (err) {
       throw err;
@@ -81,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         router.push('/login?registered=true');
       } else {
         setUser(newUser);
+        setSimulatedRole(null); // Reiniciar simulación al registrarse
         router.push('/');
       }
     } catch (err) {
@@ -95,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
       setUser(null);
+      setSimulatedRole(null); // Limpiar simulación
       router.push('/login');
     } catch (err) {
       console.error('Error cerrando sesión:', err);
@@ -104,7 +138,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isDemoMode, login, signup, logout }}>
+    <AuthContext.Provider value={{ 
+      user: computedUser, 
+      realUser: user, 
+      loading, 
+      isDemoMode, 
+      login, 
+      signup, 
+      logout,
+      simulatedRole,
+      setSimulatedRole
+    }}>
       {children}
     </AuthContext.Provider>
   );
