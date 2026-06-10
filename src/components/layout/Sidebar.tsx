@@ -108,21 +108,22 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
                   </span>
                 )}
               </div>
-              <div className="relative">
-                <select
-                  value={simulatedRole || 'administrador'}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSimulatedRole(val === 'administrador' ? null : 'vendedor');
-                  }}
-                  className="w-full text-xs bg-background border border-sky-500/20 hover:border-sky-500/50 text-foreground py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer appearance-none transition-all-custom"
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-background border border-sky-500/20 hover:border-sky-500/40 transition-colors">
+                <span className="text-xs text-foreground font-medium">Simular Vendedor</span>
+                <button
+                  type="button"
+                  onClick={() => setSimulatedRole(simulatedRole === 'vendedor' ? null : 'vendedor')}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    simulatedRole === 'vendedor' ? 'bg-sky-500' : 'bg-slate-700'
+                  }`}
+                  aria-label="Alternar modo sandbox"
                 >
-                  <option value="administrador">Administrador (Real)</option>
-                  <option value="vendedor">Vendedor (Simulado)</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                </div>
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      simulatedRole === 'vendedor' ? 'translate-x-4' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
             </div>
           </div>
