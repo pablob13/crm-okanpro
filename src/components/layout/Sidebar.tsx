@@ -43,7 +43,14 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
   const menuItems = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Prospectos (Leads)', href: '/leads', icon: Users },
-    { name: 'Clientes', href: '/clients', icon: Handshake },
+    { 
+      name: 'Clientes', 
+      icon: Handshake,
+      submenu: [
+        { name: 'Cartera General', href: '/clients' },
+        { name: 'Clientes Cerrados', href: '/clients/closed' }
+      ]
+    },
     { name: 'Pipeline de Ventas', href: '/pipeline', icon: Kanban },
     { name: 'Productos', href: '/products', icon: Package },
     { name: 'Tareas', href: '/tasks', icon: CheckSquare },

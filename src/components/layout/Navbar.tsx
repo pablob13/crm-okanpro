@@ -17,7 +17,9 @@ export default function Navbar({ setMobileOpen }: NavbarProps) {
   const getPageTitle = () => {
     switch (pathname) {
       case '/': return 'Panel de Control (Dashboard)';
-      case '/leads': return 'Prospectos y Clientes';
+      case '/leads': return 'Prospectos (Leads)';
+      case '/clients': return 'Cartera de Clientes';
+      case '/clients/closed': return 'Clientes Cerrados (Post-Venta)';
       case '/pipeline': return 'Pipeline de Ventas';
       case '/tasks': return 'Gestión de Tareas';
       case '/manuals': return 'Manuales y Documentación';
