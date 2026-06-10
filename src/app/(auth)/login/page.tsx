@@ -1,16 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { Sparkles, Mail, Lock, Database } from 'lucide-react';
+import { Sparkles, Mail, Lock, Database, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const { login, isDemoMode } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const errorParam = searchParams.get('error');
+  const registeredParam = searchParams.get('registered');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (errorParam || registeredParam) {
+      setShowModal(true);
+    }
+  }, [errorParam, registeredParam]);
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    router.replace('/login');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +170,62 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+
+      {/* Custom Modal with OkanPro Branding */}
+      {showModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="relative w-full max-w-sm p-6 rounded-2xl bg-card border border-border shadow-2xl flex flex-col items-center text-center space-y-4 animate-scale-up">
+            
+            {/* Branding Logo */}
+            <div className="relative">
+              <img 
+                src="/logo.png" 
+                alt="OkanPro Logo" 
+                className="w-16 h-16 object-contain rounded-xl shadow-md"
+              />
+              <div className="absolute -bottom-1.5 -right-1.5 p-1 bg-background border border-border rounded-lg shadow-sm">
+                {registeredParam ? (
+                  <CheckCircle2 size={16} className="text-emerald-500" />
+                ) : (
+                  <AlertCircle size={16} className="text-amber-500" />
+                )}
+              </div>
+            </div>
+
+            {/* Content text */}
+            <div className="space-y-2">
+              <h3 className="font-bold text-base text-foreground">
+                {registeredParam ? '¡Registro Exitoso!' : 'Cuenta en Revisión'}
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {registeredParam 
+                  ? 'Tu cuenta ha sido creada correctamente y está pendiente de aprobación por un administrador. Recibirás acceso completo una vez que sea autorizada.'
+                  : 'Tu cuenta de operador está pendiente de aprobación. Comunícate con un administrador o envía un correo a soporte@okanpro.com.'}
+              </p>
+            </div>
+
+            {/* Action button */}
+            <button
+              onClick={handleCloseModal}
+              className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-md shadow-primary/20 hover:bg-primary/95 transition-all cursor-pointer flex items-center justify-center"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

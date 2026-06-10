@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (currentUser && currentUser.activo === false) {
           await authService.logout();
           setUser(null);
-          alert('Tu cuenta está pendiente de aprobación por un administrador. Comunícate con soporte@okanpro.com.');
+          router.push('/login?error=inactive');
         } else {
           setUser(currentUser);
         }
@@ -78,8 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (newUser && newUser.activo === false) {
         await authService.logout();
         setUser(null);
-        alert('¡Registro exitoso! Tu cuenta ha sido creada y está pendiente de aprobación por un administrador.');
-        router.push('/login');
+        router.push('/login?registered=true');
       } else {
         setUser(newUser);
         router.push('/');
