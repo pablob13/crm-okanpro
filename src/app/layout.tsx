@@ -16,6 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "OkanPro CRM - Control Comercial",
   description: "Sistema de gestión de clientes y pipeline de ventas para OkanPro",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
