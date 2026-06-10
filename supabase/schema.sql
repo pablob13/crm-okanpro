@@ -110,21 +110,25 @@ USING (
 );
 
 -- Leads: Los usuarios autenticados pueden ver todos los leads. Pueden insertar o actualizar si están autenticados.
+DROP POLICY IF EXISTS "Permitir selección de leads a autenticados" ON public.leads;
 CREATE POLICY "Permitir selección de leads a autenticados" 
 ON public.leads FOR SELECT 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir inserción de leads a autenticados" ON public.leads;
 CREATE POLICY "Permitir inserción de leads a autenticados" 
 ON public.leads FOR INSERT 
 TO authenticated 
 WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir actualización de leads a autenticados" ON public.leads;
 CREATE POLICY "Permitir actualización de leads a autenticados" 
 ON public.leads FOR UPDATE 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir eliminación de leads a administradores" ON public.leads;
 CREATE POLICY "Permitir eliminación de leads a administradores" 
 ON public.leads FOR DELETE 
 TO authenticated 
@@ -136,21 +140,25 @@ USING (
 );
 
 -- Opportunities
+DROP POLICY IF EXISTS "Permitir selección de oportunidades a autenticados" ON public.opportunities;
 CREATE POLICY "Permitir selección de oportunidades a autenticados" 
 ON public.opportunities FOR SELECT 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir inserción de oportunidades a autenticados" ON public.opportunities;
 CREATE POLICY "Permitir inserción de oportunidades a autenticados" 
 ON public.opportunities FOR INSERT 
 TO authenticated 
 WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir actualización de oportunidades a autenticados" ON public.opportunities;
 CREATE POLICY "Permitir actualización de oportunidades a autenticados" 
 ON public.opportunities FOR UPDATE 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir eliminación de oportunidades a administradores" ON public.opportunities;
 CREATE POLICY "Permitir eliminación de oportunidades a administradores" 
 ON public.opportunities FOR DELETE 
 TO authenticated 
@@ -162,32 +170,38 @@ USING (
 );
 
 -- Tasks
+DROP POLICY IF EXISTS "Permitir selección de tareas a autenticados" ON public.tasks;
 CREATE POLICY "Permitir selección de tareas a autenticados" 
 ON public.tasks FOR SELECT 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir inserción de tareas a autenticados" ON public.tasks;
 CREATE POLICY "Permitir inserción de tareas a autenticados" 
 ON public.tasks FOR INSERT 
 TO authenticated 
 WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir actualización de tareas a autenticados" ON public.tasks;
 CREATE POLICY "Permitir actualización de tareas a autenticados" 
 ON public.tasks FOR UPDATE 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir eliminación de tareas a autenticados" ON public.tasks;
 CREATE POLICY "Permitir eliminación de tareas a autenticados" 
 ON public.tasks FOR DELETE 
 TO authenticated 
 USING (true);
 
 -- Interactions
+DROP POLICY IF EXISTS "Permitir selección de interacciones a autenticados" ON public.interactions;
 CREATE POLICY "Permitir selección de interacciones a autenticados" 
 ON public.interactions FOR SELECT 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir inserción de interacciones a autenticados" ON public.interactions;
 CREATE POLICY "Permitir inserción de interacciones a autenticados" 
 ON public.interactions FOR INSERT 
 TO authenticated 
@@ -247,21 +261,25 @@ CREATE TABLE IF NOT EXISTS public.manuals (
 ALTER TABLE public.manuals ENABLE ROW LEVEL SECURITY;
 
 -- Políticas
+DROP POLICY IF EXISTS "Permitir selección de manuales a autenticados" ON public.manuals;
 CREATE POLICY "Permitir selección de manuales a autenticados" 
 ON public.manuals FOR SELECT 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir inserción de manuales a autenticados" ON public.manuals;
 CREATE POLICY "Permitir inserción de manuales a autenticados" 
 ON public.manuals FOR INSERT 
 TO authenticated 
 WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Permitir actualización de manuales a autenticados" ON public.manuals;
 CREATE POLICY "Permitir actualización de manuales a autenticados" 
 ON public.manuals FOR UPDATE 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir eliminación de manuales a autenticados" ON public.manuals;
 CREATE POLICY "Permitir eliminación de manuales a autenticados" 
 ON public.manuals FOR DELETE 
 TO authenticated 
