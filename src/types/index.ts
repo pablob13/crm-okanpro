@@ -5,6 +5,7 @@ export interface Profile {
   full_name: string | null;
   email: string;
   role: UserRole;
+  activo?: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -5,6 +5,8 @@ import AppLayout from '@/components/layout/AppLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { mockDb } from '@/services/mockData';
+import { authService } from '@/services/authService';
+import { Profile } from '@/types';
 import { 
   User, 
   Database, 
@@ -14,7 +16,11 @@ import {
   Check, 
   AlertCircle, 
   Key,
-  ShieldCheck
+  ShieldCheck,
+  Users,
+  Search,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -28,6 +34,11 @@ export default function SettingsPage() {
   const [googleApiKey, setGoogleApiKey] = useState('');
   const [isSaved, setIsSaved] = useState(false);
 
+  // Estado local para Administración de Usuarios (Operadores)
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     // Detectar el tema actual del elemento html
     if (typeof window !== 'undefined') {
@@ -39,6 +50,53 @@ export default function SettingsPage() {
       setGoogleApiKey(localStorage.getItem('okanpro_gauth_api_key') || '');
     }
   }, []);
+
+  useEffect(() => {
+    if (user && user.role === 'administrador') {
+      loadProfiles();
+    }
+  }, [user]);
+
+  const loadProfiles = async () => {
+    setLoadingProfiles(true);
+    try {
+      const data = await authService.getAllProfiles();
+      setProfiles(data);
+    } catch (err) {
+      console.error('Error cargando perfiles:', err);
+    } finally {
+      setLoadingProfiles(false);
+    }
+  };
+
+  const handleToggleActive = async (profileId: string, currentStatus: boolean) => {
+    if (profileId === user?.id) {
+      alert('No puedes desactivar tu propia cuenta de administrador.');
+      return;
+    }
+    try {
+      await authService.updateProfile(profileId, { activo: !currentStatus });
+      loadProfiles();
+    } catch (err: any) {
+      console.error(err);
+      alert('Error al cambiar el estado del usuario: ' + err.message);
+    }
+  };
+
+  const handleToggleRole = async (profileId: string, currentRole: string) => {
+    if (profileId === user?.id) {
+      alert('No puedes cambiar tu propio rol de administrador.');
+      return;
+    }
+    const newRole = currentRole === 'administrador' ? 'vendedor' : 'administrador';
+    try {
+      await authService.updateProfile(profileId, { role: newRole });
+      loadProfiles();
+    } catch (err: any) {
+      console.error(err);
+      alert('Error al cambiar el rol del usuario: ' + err.message);
+    }
+  };
 
   const handleSaveGoogleConfig = () => {
     if (typeof window !== 'undefined') {
@@ -105,6 +163,124 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        {/* User Management Section (Only visible to Admin) */}
+        {user?.role === 'administrador' && (
+          <div className="p-6 rounded-2xl bg-card border border-border shadow-sm space-y-6">
+            <div className="flex items-center justify-between pb-4 border-b border-border">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-cyan-500/10 text-cyan-400 rounded-xl shrink-0">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-base">Gestión de Operadores</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Autoriza el acceso de los vendedores y configura sus permisos.</p>
+                </div>
+              </div>
+              
+              <button 
+                onClick={loadProfiles}
+                disabled={loadingProfiles}
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors cursor-pointer"
+                title="Actualizar Lista"
+              >
+                <RefreshCw size={16} className={loadingProfiles ? 'animate-spin' : ''} />
+              </button>
+            </div>
+
+            {/* Buscador de usuarios */}
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-muted-foreground">
+                <Search size={14} />
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar operador por nombre o correo..."
+                className="w-full pl-9 pr-4 py-2 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+            </div>
+
+            {/* Listado de perfiles */}
+            <div className="divide-y divide-border/60">
+              {loadingProfiles ? (
+                <div className="py-8 text-center text-xs text-muted-foreground flex flex-col items-center gap-2">
+                  <RefreshCw size={24} className="animate-spin text-primary animate-spin" />
+                  Cargando operadores registrados...
+                </div>
+              ) : profiles.filter(p => 
+                p.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.email.toLowerCase().includes(searchQuery.toLowerCase())
+              ).length === 0 ? (
+                <div className="py-8 text-center text-xs text-muted-foreground italic">
+                  No se encontraron operadores registrados.
+                </div>
+              ) : (
+                profiles.filter(p => 
+                  p.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  p.email.toLowerCase().includes(searchQuery.toLowerCase())
+                ).map(profile => (
+                  <div key={profile.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 first:pt-0 last:pb-0">
+                    <div className="flex items-center gap-3">
+                      {/* Avatar */}
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 text-white select-none ${
+                        profile.role === 'administrador' ? 'bg-primary' : 'bg-slate-500'
+                      }`}>
+                        {(profile.full_name || '?')[0].toUpperCase()}
+                      </div>
+                      
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-foreground line-clamp-1 leading-snug">{profile.full_name || 'Nuevo Operador'}</p>
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-extrabold capitalize ${
+                            profile.role === 'administrador' 
+                              ? 'bg-primary/10 text-primary border border-primary/10' 
+                              : 'bg-secondary text-muted-foreground border border-border'
+                          }`}>
+                            {profile.role}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">{profile.email}</p>
+                      </div>
+                    </div>
+
+                    {/* Acciones */}
+                    <div className="flex items-center gap-2.5 shrink-0 self-end sm:self-center">
+                      {/* Alternar Rol */}
+                      <button
+                        onClick={() => handleToggleRole(profile.id, profile.role)}
+                        disabled={profile.id === user?.id}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                          profile.role === 'administrador'
+                            ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20'
+                            : 'bg-background text-foreground border-border hover:bg-secondary'
+                        }`}
+                        title="Cambiar Rol de Permisos"
+                      >
+                        Hacer {profile.role === 'administrador' ? 'Vendedor' : 'Admin'}
+                      </button>
+
+                      {/* Alternar Estado Activo */}
+                      <button
+                        onClick={() => handleToggleActive(profile.id, !!profile.activo)}
+                        disabled={profile.id === user?.id}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed ${
+                          profile.activo
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+                            : 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20'
+                        }`}
+                      >
+                        {profile.activo ? <UserCheck size={11} /> : <UserX size={11} />}
+                        {profile.activo ? 'Activo' : 'Pendiente'}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Theme Settings Section */}
         <div className="p-6 rounded-2xl bg-card border border-border shadow-sm space-y-6">

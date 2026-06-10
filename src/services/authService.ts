@@ -59,6 +59,9 @@ export const authService = {
         .single();
       
       if (profileError) throw profileError;
+      if (profile.activo === false) {
+        throw new Error('Tu cuenta está pendiente de aprobación por un administrador. Comunícate con soporte@okanpro.com.');
+      }
       return profile;
     } else {
       // Modo Demo
@@ -93,12 +96,20 @@ export const authService = {
       if (!data.user) throw new Error('No se pudo registrar el usuario');
 
       // En supabase real, el trigger creará el perfil. 
-      // Retornamos el perfil construido para uso inmediato
-      return {
+      // Esperamos un momento para asegurar que el trigger se ejecute y luego cargamos el perfil
+      await new Promise(resolve => setTimeout(resolve, 800));
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      return profile || {
         id: data.user.id,
         full_name: fullName || 'Nuevo Usuario',
         email: email,
         role: 'vendedor',
+        activo: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -110,6 +121,8 @@ export const authService = {
       const user = mockDb.getUser();
       user.email = email;
       user.full_name = fullName || 'Usuario Demo';
+      user.role = 'administrador';
+      user.activo = true;
       mockDb.saveUser(user);
       return user;
     }
@@ -123,6 +136,44 @@ export const authService = {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('okanpro_demo_logged');
       }
+    }
+  },
+
+  async getAllProfiles(): Promise<Profile[]> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('full_name', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    } else {
+      return mockDb.getUsers();
+    }
+  },
+
+  async updateProfile(id: string, updates: Partial<Profile>): Promise<Profile> {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      const users = mockDb.getUsers();
+      const index = users.findIndex(u => u.id === id);
+      if (index === -1) throw new Error('Usuario no encontrado');
+      const updated = {
+        ...users[index],
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+      users[index] = updated;
+      mockDb.saveUsers(users);
+      return updated;
     }
   }
 };

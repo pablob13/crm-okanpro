@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     full_name TEXT,
     email TEXT UNIQUE NOT NULL,
     role TEXT DEFAULT 'vendedor' CHECK (role IN ('administrador', 'vendedor')),
+    activo BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -94,6 +95,16 @@ CREATE POLICY "Permitir actualización de perfil propio"
 ON public.profiles FOR UPDATE 
 TO authenticated 
 USING (auth.uid() = id);
+
+CREATE POLICY "Permitir a administradores actualizar cualquier perfil" 
+ON public.profiles FOR UPDATE 
+TO authenticated 
+USING (
+    EXISTS (
+        SELECT 1 FROM public.profiles 
+        WHERE profiles.id = auth.uid() AND profiles.role = 'administrador'
+    )
+);
 
 -- Leads: Los usuarios autenticados pueden ver todos los leads. Pueden insertar o actualizar si están autenticados.
 CREATE POLICY "Permitir selección de leads a autenticados" 
@@ -184,15 +195,22 @@ WITH CHECK (true);
 -- ==========================================
 
 -- Crear un perfil automáticamente cuando se registre un nuevo usuario en Supabase Auth
+-- Si es el primer usuario en registrarse, se activa automáticamente y se le asigna rol administrador.
+-- De lo contrario, se crea inactivo (pendiente de aprobación) y con rol vendedor.
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
+DECLARE
+    is_first_user BOOLEAN;
 BEGIN
-    INSERT INTO public.profiles (id, full_name, email, role)
+    SELECT NOT EXISTS (SELECT 1 FROM public.profiles) INTO is_first_user;
+
+    INSERT INTO public.profiles (id, full_name, email, role, activo)
     VALUES (
         new.id,
         COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', 'Usuario Nuevo'),
         new.email,
-        'vendedor' -- Rol por defecto
+        CASE WHEN is_first_user THEN 'administrador' ELSE 'vendedor' END,
+        is_first_user
     );
     RETURN NEW;
 END;

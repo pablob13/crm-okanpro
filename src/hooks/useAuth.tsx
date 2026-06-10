@@ -28,7 +28,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function initAuth() {
       try {
         const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+        if (currentUser && currentUser.activo === false) {
+          await authService.logout();
+          setUser(null);
+          alert('Tu cuenta está pendiente de aprobación por un administrador. Comunícate con soporte@okanpro.com.');
+        } else {
+          setUser(currentUser);
+        }
       } catch (err) {
         console.error('Error inicializando autenticación:', err);
       } finally {
@@ -69,8 +75,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const newUser = await authService.signup(email, password, fullName);
-      setUser(newUser);
-      router.push('/');
+      if (newUser && newUser.activo === false) {
+        await authService.logout();
+        setUser(null);
+        alert('¡Registro exitoso! Tu cuenta ha sido creada y está pendiente de aprobación por un administrador.');
+        router.push('/login');
+      } else {
+        setUser(newUser);
+        router.push('/');
+      }
     } catch (err) {
       throw err;
     } finally {

@@ -6,6 +6,7 @@ export const MOCK_USER: Profile = {
   full_name: 'Usuario Demo OkanPro',
   email: 'demo@okanpro.com',
   role: 'administrador',
+  activo: true,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };
@@ -237,6 +238,37 @@ export const INITIAL_MANUALS: Manual[] = [
   }
 ];
 
+// Operadores / Usuarios iniciales para el modo demo
+export const INITIAL_USERS: Profile[] = [
+  {
+    id: 'mock-user-id-123',
+    full_name: 'Usuario Demo OkanPro',
+    email: 'demo@okanpro.com',
+    role: 'administrador',
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'mock-user-id-2',
+    full_name: 'Alejandro Ramos',
+    email: 'alejandro@okanpro.com',
+    role: 'vendedor',
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'mock-user-id-3',
+    full_name: 'Sofía Castro',
+    email: 'sofia.castro@okanpro.com',
+    role: 'vendedor',
+    activo: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+];
+
 // Utilidad de almacenamiento en LocalStorage para modo Demo
 const STORAGE_KEYS = {
   LEADS: 'okanpro_crm_leads',
@@ -245,6 +277,7 @@ const STORAGE_KEYS = {
   INTERACTIONS: 'okanpro_crm_interactions',
   USER: 'okanpro_crm_user',
   MANUALS: 'okanpro_crm_manuals',
+  USERS: 'okanpro_crm_users'
 };
 
 export const mockDb = {
@@ -338,6 +371,21 @@ export const mockDb = {
     }
   },
 
+  getUsers: (): Profile[] => {
+    if (typeof window === 'undefined') return INITIAL_USERS;
+    const data = localStorage.getItem(STORAGE_KEYS.USERS);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(INITIAL_USERS));
+      return INITIAL_USERS;
+    }
+    return JSON.parse(data);
+  },
+  saveUsers: (users: Profile[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    }
+  },
+
   reset: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.LEADS);
@@ -346,6 +394,7 @@ export const mockDb = {
       localStorage.removeItem(STORAGE_KEYS.INTERACTIONS);
       localStorage.removeItem(STORAGE_KEYS.USER);
       localStorage.removeItem(STORAGE_KEYS.MANUALS);
+      localStorage.removeItem(STORAGE_KEYS.USERS);
     }
   }
 };
