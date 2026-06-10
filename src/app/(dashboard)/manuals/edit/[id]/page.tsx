@@ -33,11 +33,11 @@ import {
 import { loadGoogleScripts, getGoogleAccessToken, formatBytes, uploadHtmlToGoogleDrive, extractGoogleFileId } from '@/lib/googleDrive';
 
 const MOCK_DRIVE_FILES = [
-  { id: '1', name: 'Catálogo_OkanPro_Paneles_Solares_2026.pdf', size: 4851200, mimeType: 'application/pdf', url: 'https://drive.google.com/file/d/1CatOkanProPaneles2026/view?usp=sharing' },
-  { id: '2', name: 'Ficha_Tecnica_Inversor_Central_OP-15K.pdf', size: 1850200, mimeType: 'application/pdf', url: 'https://drive.google.com/file/d/1FichaTecnicaInversorOP15K/view?usp=sharing' },
-  { id: '3', name: 'Presentacion_Corporativa_Eficiencia_Energetica.pptx', size: 12500000, mimeType: 'application/vnd.google-apps.presentation', url: 'https://drive.google.com/file/d/1PresCorpEficiencia2026/view?usp=sharing' },
-  { id: '4', name: 'Presupuesto_Plantilla_Calculo_Retorno_Inversion.xlsx', size: 350000, mimeType: 'application/vnd.google-apps.spreadsheet', url: 'https://drive.google.com/file/d/1PresCalculoRetorno/view?usp=sharing' },
-  { id: '5', name: 'Guia_Usuario_Monitoreo_App_OkanPro.pdf', size: 2350000, mimeType: 'application/pdf', url: 'https://drive.google.com/file/d/1GuiaMonitoreoApp/view?usp=sharing' }
+  { id: '1', name: 'Catálogo_OkanPro_Sonido_y_Automatizacion_2026.pdf', size: 4851200, mimeType: 'application/pdf', url: 'https://drive.google.com/file/d/1CatOkanProPaneles2026/view?usp=sharing' },
+  { id: '2', name: 'Ficha_Tecnica_Repetidor_Lutron_Caseta.pdf', size: 1850200, mimeType: 'application/pdf', url: 'https://drive.google.com/file/d/1FichaTecnicaInversorOP15K/view?usp=sharing' },
+  { id: '3', name: 'Presentacion_Residencial_Domotica_e_Integracion.pptx', size: 12500000, mimeType: 'application/vnd.google-apps.presentation', url: 'https://drive.google.com/file/d/1PresCorpEficiencia2026/view?usp=sharing' },
+  { id: '4', name: 'Plantilla_Presupuesto_Integracion_Audio_Luces.xlsx', size: 350000, mimeType: 'application/vnd.google-apps.spreadsheet', url: 'https://drive.google.com/file/d/1PresCalculoRetorno/view?usp=sharing' },
+  { id: '5', name: 'Guia_Usuario_App_Sonos_Lutron_Control4.pdf', size: 2350000, mimeType: 'application/pdf', url: 'https://drive.google.com/file/d/1GuiaMonitoreoApp/view?usp=sharing' }
 ];
 
 const TEXT_COLORS = [
@@ -669,7 +669,7 @@ export default function EditManualPage() {
                     type="text"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="ej. Guía técnica con formato detallado para inversores de OkanPro."
+                    placeholder="ej. Guía técnica para integración de audio Sonos y control Lutron."
                     className="w-full p-2.5 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
                   />
                 </div>

@@ -314,7 +314,7 @@ export default function PipelinePage() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="ej. Suministro Paneles Solares Fase 2"
+                  placeholder="ej. Sistema de Audio Sonos y Luces Lutron"
                   className="w-full p-2.5 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>

@@ -472,7 +472,7 @@ export default function ProductsPage() {
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="Especificaciones, dimensiones, eficiencia, etc..."
+                  placeholder="Especificaciones, marca, compatibilidad, etc..."
                   rows={3}
                   className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none"
                 />
