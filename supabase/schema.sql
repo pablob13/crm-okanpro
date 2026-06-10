@@ -86,16 +86,19 @@ ALTER TABLE public.interactions ENABLE ROW LEVEL SECURITY;
 -- ==========================================
 
 -- Profiles: Los usuarios autenticados pueden leer todos los perfiles, pero solo modificar el suyo.
+DROP POLICY IF EXISTS "Permitir lectura de perfiles a usuarios autenticados" ON public.profiles;
 CREATE POLICY "Permitir lectura de perfiles a usuarios autenticados" 
 ON public.profiles FOR SELECT 
 TO authenticated 
 USING (true);
 
+DROP POLICY IF EXISTS "Permitir actualización de perfil propio" ON public.profiles;
 CREATE POLICY "Permitir actualización de perfil propio" 
 ON public.profiles FOR UPDATE 
 TO authenticated 
 USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Permitir a administradores actualizar cualquier perfil" ON public.profiles;
 CREATE POLICY "Permitir a administradores actualizar cualquier perfil" 
 ON public.profiles FOR UPDATE 
 TO authenticated 
@@ -217,7 +220,8 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger
-CREATE OR REPLACE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
