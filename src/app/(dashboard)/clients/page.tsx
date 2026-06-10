@@ -17,7 +17,8 @@ import {
   Award,
   RefreshCw,
   Users,
-  Briefcase
+  Plus,
+  UserPlus
 } from 'lucide-react';
 
 export default function ClientsPage() {
@@ -32,6 +33,18 @@ export default function ClientsPage() {
   const [loadingInteractions, setLoadingInteractions] = useState(false);
   const [newInteractionNotes, setNewInteractionNotes] = useState('');
   const [newInteractionType, setNewInteractionType] = useState<InteractionType>('nota');
+
+  // Modal para agregar cliente directamente
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    company: '',
+    email: '',
+    phone: '',
+    source: 'directo'
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -70,6 +83,54 @@ export default function ClientsPage() {
   const handleSelectClient = (client: Lead) => {
     setSelectedClient(client);
     loadInteractions(client.id);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      first_name: '',
+      last_name: '',
+      company: '',
+      email: '',
+      phone: '',
+      source: 'directo'
+    });
+  };
+
+  const handleCreateClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.first_name.trim() || !formData.last_name.trim()) {
+      alert('Por favor ingrese nombre y apellido.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const newClient = await leadsService.createLead({
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        company: formData.company.trim() || null,
+        email: formData.email.trim() || null,
+        phone: formData.phone.trim() || null,
+        status: 'convertido', // Convertido por defecto = Cliente
+        source: formData.source,
+        assigned_to: null,
+        created_by: null
+      });
+
+      setClients(prev => [newClient, ...prev]);
+      setShowCreateModal(false);
+      resetForm();
+    } catch (err) {
+      console.error('Error creando cliente:', err);
+      alert('Ocurrio un error al registrar el cliente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleAddInteraction = async (e: React.FormEvent) => {
@@ -126,13 +187,22 @@ export default function ClientsPage() {
             <h2 className="text-xl font-extrabold text-foreground tracking-tight">Cartera de Clientes</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Visualiza y gestiona las relaciones con las cuentas y prospectos convertidos.</p>
           </div>
-          <button
-            onClick={loadData}
-            className="p-2.5 rounded-xl border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer self-start sm:self-center"
-            title="Actualizar datos"
-          >
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={loadData}
+              className="p-2.5 rounded-xl border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              title="Actualizar datos"
+            >
+              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button
+              onClick={() => { resetForm(); setShowCreateModal(true); }}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-md shadow-primary/20 hover:bg-primary/95 transition-all cursor-pointer"
+            >
+              <Plus size={16} />
+              Agregar Cliente
+            </button>
+          </div>
         </div>
 
         {/* Tarjetas de Metricas de Negocio */}
@@ -298,7 +368,7 @@ export default function ClientsPage() {
                   </div>
                 </div>
 
-                {/* Metricas especificas */}
+                {/* Metricas específicas */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-secondary/30 rounded-xl border border-border/50">
                     <p className="text-[9px] text-muted-foreground uppercase font-bold">Total Facturado</p>
@@ -407,6 +477,127 @@ export default function ClientsPage() {
         </div>
 
       </div>
+
+      {/* Modal de Creacion de Cliente Directo */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-6 animate-fade-in">
+            {/* Cabecera Modal */}
+            <div className="flex items-center justify-between pb-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                <UserPlus className="text-primary" size={18} />
+                <h3 className="font-extrabold text-foreground text-sm">Registrar Nuevo Cliente</h3>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Formulario */}
+            <form onSubmit={handleCreateClient} className="space-y-4 pt-4 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Nombre</label>
+                  <input
+                    type="text"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleInputChange}
+                    placeholder="ej. Juan"
+                    className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Apellido</label>
+                  <input
+                    type="text"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleInputChange}
+                    placeholder="ej. Perez"
+                    className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Empresa</label>
+                <input
+                  type="text"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleInputChange}
+                  placeholder="ej. Construcciones Alfa"
+                  className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Correo Electronico</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="ej. juan@empresa.com"
+                    className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Telefono</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="ej. +52 55 1234 5678"
+                    className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Origen del Cliente</label>
+                <select
+                  name="source"
+                  value={formData.source}
+                  onChange={handleInputChange}
+                  className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer"
+                >
+                  <option value="directo">Directo</option>
+                  <option value="web">Sitio Web</option>
+                  <option value="recomendacion">Recomendacion</option>
+                  <option value="campaña">Campaña Publicitaria</option>
+                </select>
+              </div>
+
+              {/* Botones Accion */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-border bg-background hover:bg-secondary text-muted-foreground font-semibold transition-colors cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold shadow-md shadow-primary/20 hover:bg-primary/95 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? 'Registrando...' : 'Registrar Cliente'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 }

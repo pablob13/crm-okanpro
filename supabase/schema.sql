@@ -365,3 +365,44 @@ ON public.bank_movements FOR UPDATE
 TO authenticated 
 USING (true);
 
+-- 9. PRODUCTS TABLE (Productos)
+CREATE TABLE IF NOT EXISTS public.products (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    sku TEXT UNIQUE,
+    price DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
+    category TEXT NOT NULL,
+    active BOOLEAN DEFAULT true NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Habilitar RLS
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de RLS para products
+DROP POLICY IF EXISTS "Permitir lectura de productos a autenticados" ON public.products;
+CREATE POLICY "Permitir lectura de productos a autenticados" 
+ON public.products FOR SELECT 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir inserción de productos a autenticados" ON public.products;
+CREATE POLICY "Permitir inserción de productos a autenticados" 
+ON public.products FOR INSERT 
+TO authenticated 
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir actualización de productos a autenticados" ON public.products;
+CREATE POLICY "Permitir actualización de productos a autenticados" 
+ON public.products FOR UPDATE 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir eliminación de productos a autenticados" ON public.products;
+CREATE POLICY "Permitir eliminación de productos a autenticados" 
+ON public.products FOR DELETE 
+TO authenticated 
+USING (true);
+

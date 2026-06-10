@@ -1,4 +1,4 @@
-import { Profile, Lead, Opportunity, Task, Interaction, Manual, Expense, BankMovement } from '@/types';
+import { Profile, Lead, Opportunity, Task, Interaction, Manual, Expense, BankMovement, Product } from '@/types';
 
 // Perfil de prueba por defecto
 export const MOCK_USER: Profile = {
@@ -353,6 +353,54 @@ export const INITIAL_BANK_MOVEMENTS: BankMovement[] = [
   }
 ];
 
+// Productos iniciales para el modo demo
+export const INITIAL_PRODUCTS: Product[] = [
+  {
+    id: 'prod-1',
+    name: 'Panel Solar Monocristalino 550W',
+    description: 'Panel solar de alta eficiencia con celdas partido tipo PERC. Excelente rendimiento con baja radiacion.',
+    sku: 'PAN-MON-550',
+    price: 3450.00,
+    category: 'Paneles Solares',
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'prod-2',
+    name: 'Inversor Hibrido OkanPro 5kW',
+    description: 'Inversor cargador solar inteligente con soporte de baterias de litio y funcionamiento On/Off-Grid.',
+    sku: 'INV-HIB-5KW',
+    price: 18500.00,
+    category: 'Inversores',
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'prod-3',
+    name: 'Estructura Aluminio Coplanar (4 Paneles)',
+    description: 'Soportes de aluminio anodizado AL6005-T5 con tornilleria de acero inoxidable para fijacion en techos inclinados.',
+    sku: 'EST-COP-4P',
+    price: 2100.00,
+    category: 'Soportes',
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'prod-4',
+    name: 'Cable Fotovoltaico Rojo 10 AWG (Metros)',
+    description: 'Cable de cobre estañado ultra flexible diseñado especificamente para instalaciones solares, resistente a rayos UV.',
+    sku: 'CAB-FOT-10R',
+    price: 45.00,
+    category: 'Cableado',
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+];
+
 // Utilidad de almacenamiento en LocalStorage para modo Demo
 const STORAGE_KEYS = {
   LEADS: 'okanpro_crm_leads',
@@ -363,7 +411,8 @@ const STORAGE_KEYS = {
   MANUALS: 'okanpro_crm_manuals',
   USERS: 'okanpro_crm_users',
   EXPENSES: 'okanpro_crm_expenses',
-  BANK_MOVEMENTS: 'okanpro_crm_bank_movements'
+  BANK_MOVEMENTS: 'okanpro_crm_bank_movements',
+  PRODUCTS: 'okanpro_crm_products'
 };
 
 export const mockDb = {
@@ -502,6 +551,21 @@ export const mockDb = {
     }
   },
 
+  getProducts: (): Product[] => {
+    if (typeof window === 'undefined') return INITIAL_PRODUCTS;
+    const data = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(INITIAL_PRODUCTS));
+      return INITIAL_PRODUCTS;
+    }
+    return JSON.parse(data);
+  },
+  saveProducts: (products: Product[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    }
+  },
+
   reset: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.LEADS);
@@ -513,6 +577,7 @@ export const mockDb = {
       localStorage.removeItem(STORAGE_KEYS.USERS);
       localStorage.removeItem(STORAGE_KEYS.EXPENSES);
       localStorage.removeItem(STORAGE_KEYS.BANK_MOVEMENTS);
+      localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
     }
   }
 };

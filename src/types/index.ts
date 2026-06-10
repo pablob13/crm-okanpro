@@ -123,3 +123,15 @@ export interface BankMovement {
   expense_id?: string | null;
   created_at: string;
 }
+
+export interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  sku: string | null;
+  price: number;
+  category: string;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
