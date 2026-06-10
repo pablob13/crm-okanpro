@@ -374,6 +374,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     price DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
     category TEXT NOT NULL,
     active BOOLEAN DEFAULT true NOT NULL,
+    image_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -405,4 +406,7 @@ CREATE POLICY "Permitir eliminación de productos a autenticados"
 ON public.products FOR DELETE 
 TO authenticated 
 USING (true);
+
+-- Agregar columna de imagen de forma idempotente para bases de datos ya creadas
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS image_url TEXT;
 

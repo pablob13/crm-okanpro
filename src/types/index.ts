@@ -132,6 +132,7 @@ export interface Product {
   price: number;
   category: string;
   active: boolean;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
 }

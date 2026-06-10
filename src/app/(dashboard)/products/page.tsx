@@ -37,7 +37,8 @@ export default function ProductsPage() {
     sku: '',
     price: '',
     category: 'Sonido',
-    active: true
+    active: true,
+    image_url: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -74,7 +75,8 @@ export default function ProductsPage() {
       sku: '',
       price: '',
       category: 'Sonido',
-      active: true
+      active: true,
+      image_url: ''
     });
     setEditingProduct(null);
   };
@@ -92,7 +94,8 @@ export default function ProductsPage() {
       sku: product.sku || '',
       price: product.price.toString(),
       category: product.category,
-      active: product.active
+      active: product.active,
+      image_url: product.image_url || ''
     });
     setIsOpen(true);
   };
@@ -123,7 +126,8 @@ export default function ProductsPage() {
         sku: formData.sku.trim() || null,
         price: Number(formData.price),
         category: formData.category,
-        active: formData.active
+        active: formData.active,
+        image_url: formData.image_url.trim() || null
       };
 
       if (editingProduct) {
@@ -324,10 +328,30 @@ export default function ProductsPage() {
                         {product.sku || 'S/N SKU'}
                       </td>
                       <td className="p-4 max-w-sm">
-                        <p className="font-bold text-foreground text-xs">{product.name}</p>
-                        {product.description && (
-                          <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 leading-relaxed">{product.description}</p>
-                        )}
+                        <div className="flex items-center gap-3">
+                          {product.image_url ? (
+                            <img 
+                              src={product.image_url} 
+                              alt={product.name} 
+                              className="w-10 h-10 object-cover rounded-xl border border-border bg-secondary shrink-0"
+                              onError={(e) => {
+                                // Evitar bucles de error
+                                (e.target as HTMLImageElement).onerror = null;
+                                (e.target as HTMLImageElement).src = '';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl border border-border bg-secondary flex items-center justify-center text-muted-foreground shrink-0">
+                              <Package size={16} />
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-foreground text-xs">{product.name}</p>
+                            {product.description && (
+                              <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 leading-relaxed">{product.description}</p>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="p-4 whitespace-nowrap">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-secondary border border-border text-muted-foreground">
@@ -463,6 +487,61 @@ export default function ProductsPage() {
                     />
                     <span>Producto Activo</span>
                   </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Imagen del Producto (URL)</label>
+                <div className="flex gap-3 items-center">
+                  <input
+                    type="url"
+                    name="image_url"
+                    value={formData.image_url}
+                    onChange={handleInputChange}
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    className="flex-1 p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                  {formData.image_url && (
+                    <div className="w-12 h-12 rounded-xl border border-border overflow-hidden bg-secondary shrink-0 flex items-center justify-center">
+                      <img 
+                        src={formData.image_url} 
+                        alt="Vista previa" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).onerror = null;
+                          (e.target as HTMLImageElement).src = '';
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+                {/* Plantillas de Imagen */}
+                <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] text-muted-foreground mr-1">Preajustes rápidos:</span>
+                  {[
+                    { name: 'Sonos', url: 'https://images.unsplash.com/photo-1610484826967-09c5720778c7?w=150&auto=format&fit=crop&q=60' },
+                    { name: 'Lutron', url: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=150&auto=format&fit=crop&q=60' },
+                    { name: 'Hikvision', url: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=150&auto=format&fit=crop&q=60' },
+                    { name: 'Control4', url: 'https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?w=150&auto=format&fit=crop&q=60' }
+                  ].map(preset => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, image_url: preset.url }))}
+                      className="px-2.5 py-1 bg-secondary hover:bg-secondary/80 text-foreground text-[10px] font-semibold rounded-lg border border-border transition-colors cursor-pointer"
+                    >
+                      {preset.name}
+                    </button>
+                  ))}
+                  {formData.image_url && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                      className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold rounded-lg border border-red-500/20 transition-colors cursor-pointer"
+                    >
+                      Limpiar
+                    </button>
+                  )}
                 </div>
               </div>
 
