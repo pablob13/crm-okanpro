@@ -444,6 +444,7 @@ CREATE TABLE IF NOT EXISTS public.quotes (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     client_id UUID REFERENCES public.leads(id) ON DELETE CASCADE NOT NULL,
     title TEXT NOT NULL,
+    project_type TEXT DEFAULT 'residencial' CHECK (project_type IN ('residencial', 'comercial', 'corporativo', 'mantenimiento', 'otro')) NOT NULL,
     status TEXT DEFAULT 'borrador'::text NOT NULL,
     subtotal DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
     discount DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
@@ -453,6 +454,9 @@ CREATE TABLE IF NOT EXISTS public.quotes (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
+
+-- Agregar columna project_type de forma idempotente para bases de datos ya creadas
+ALTER TABLE public.quotes ADD COLUMN IF NOT EXISTS project_type TEXT DEFAULT 'residencial' CHECK (project_type IN ('residencial', 'comercial', 'corporativo', 'mantenimiento', 'otro'));
 
 CREATE TABLE IF NOT EXISTS public.quote_items (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

@@ -138,11 +138,13 @@ export interface Product {
 }
 
 export type QuoteStatus = 'borrador' | 'enviada' | 'aceptada' | 'rechazada';
+export type ProjectType = 'residencial' | 'comercial' | 'corporativo' | 'mantenimiento' | 'otro';
 
 export interface Quote {
   id: string;
   client_id: string;
   title: string;
+  project_type: ProjectType;
   status: QuoteStatus;
   subtotal: number;
   discount: number;

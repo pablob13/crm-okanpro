@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Quote, QuoteItem, Lead, Product, QuoteStatus } from '@/types';
+import { Quote, QuoteItem, Lead, Product, QuoteStatus, ProjectType } from '@/types';
 import { leadsService } from '@/services/leadsService';
 import { productsService } from '@/services/productsService';
 import { 
@@ -45,6 +45,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
 
   // Form states
   const [title, setTitle] = useState(initialQuote?.title || 'Cotización de Proyecto');
+  const [projectType, setProjectType] = useState<ProjectType>(initialQuote?.project_type || 'residencial');
   const [clientId, setClientId] = useState(initialQuote?.client_id || '');
   const [status, setStatus] = useState<QuoteStatus>(initialQuote?.status || 'borrador');
   const [notes, setNotes] = useState(initialQuote?.notes || '');
@@ -205,6 +206,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
       const quotePayload: Omit<Quote, 'id' | 'created_at' | 'updated_at'> = {
         client_id: clientId,
         title: title.trim(),
+        project_type: projectType,
         status,
         subtotal,
         discount: actualDiscount,
@@ -291,7 +293,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
             <div className="p-6 rounded-2xl bg-card border border-border shadow-sm space-y-4">
               <h3 className="font-extrabold text-foreground text-xs uppercase tracking-wider border-b border-border pb-2">Información General</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Title */}
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Título de la Cotización</label>
@@ -303,6 +305,23 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
                     className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-semibold"
                     required
                   />
+                </div>
+
+                {/* Project Type Select */}
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tipo de Proyecto</label>
+                  <select
+                    value={projectType}
+                    onChange={(e) => setProjectType(e.target.value as ProjectType)}
+                    className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer font-medium"
+                    required
+                  >
+                    <option value="residencial">Residencial</option>
+                    <option value="comercial">Comercial</option>
+                    <option value="corporativo">Corporativo</option>
+                    <option value="mantenimiento">Mantenimiento</option>
+                    <option value="otro">Otro</option>
+                  </select>
                 </div>
 
                 {/* Client Select */}
@@ -611,6 +630,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Proyecto / Propuesta</h3>
             <p className="text-sm font-extrabold text-slate-800">{title}</p>
+            <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Tipo: {projectType}</p>
             <p className="text-xs text-slate-500 mt-2">Integración y configuración de audio multiroom, iluminación arquitectónica, redes de alta velocidad y automatización inteligente.</p>
           </div>
         </div>

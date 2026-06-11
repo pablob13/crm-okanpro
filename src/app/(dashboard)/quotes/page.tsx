@@ -270,7 +270,12 @@ export default function QuotesPage() {
                           <FileText size={16} className="text-primary/70 shrink-0" />
                           <div>
                             <p className="font-bold text-foreground text-xs">{quote.title}</p>
-                            <p className="text-[9px] text-muted-foreground font-mono font-medium">{quote.id}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <span className="text-[9px] text-muted-foreground font-mono font-medium">{quote.id}</span>
+                              <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.2 rounded font-bold uppercase select-none">
+                                {quote.project_type || 'residencial'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </td>
