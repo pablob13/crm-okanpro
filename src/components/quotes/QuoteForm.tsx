@@ -57,6 +57,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
   );
   const effectiveProjectType = projectType === 'otro' ? (customType.trim() || 'otro') : projectType;
   const [clientId, setClientId] = useState(initialQuote?.client_id || '');
+  const [clientTypeTab, setClientTypeTab] = useState<'prospecto' | 'cliente'>('prospecto');
   const [status, setStatus] = useState<QuoteStatus>(initialQuote?.status || 'borrador');
   const [notes, setNotes] = useState(initialQuote?.notes || '');
   const [discount, setDiscount] = useState<number>(initialQuote?.discount || 0);
@@ -103,6 +104,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
       
       // Update leads list and select the new lead
       setLeads(prev => [newLead, ...prev]);
+      setClientTypeTab(quickClientForm.type);
       setClientId(newLead.id);
       
       // Reset form and close modal
@@ -145,15 +147,22 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
         setProducts(productsData.filter(p => p.active));
         
         // If editing, populate items
-        if (initialQuote?.items) {
-          setItems(initialQuote.items.map(item => ({
-            id: item.id,
-            product_id: item.product_id,
-            description: item.description,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            total: item.total
-          })));
+        if (initialQuote) {
+          if (initialQuote.items) {
+            setItems(initialQuote.items.map(item => ({
+              id: item.id,
+              product_id: item.product_id,
+              description: item.description,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              total: item.total
+            })));
+          }
+          // Set client type tab based on initial client status
+          const initialLead = leadsData.find(l => l.id === initialQuote.client_id);
+          if (initialLead) {
+            setClientTypeTab(initialLead.status === 'convertido' ? 'cliente' : 'prospecto');
+          }
         } else {
           // If creating new, add one empty row by default
           addBlankItem();
@@ -410,25 +419,55 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
                 </div>
 
                 {/* Client Select */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Cliente (Prospecto)</label>
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Destinatario</label>
                     <button
                       type="button"
-                      onClick={() => setIsCreateClientModalOpen(true)}
-                      className="text-primary hover:text-primary/80 text-[10px] font-bold cursor-pointer"
+                      onClick={() => {
+                        setQuickClientForm(prev => ({ ...prev, type: clientTypeTab }));
+                        setIsCreateClientModalOpen(true);
+                      }}
+                      className="text-primary hover:text-primary/80 text-[10px] font-bold cursor-pointer transition-colors"
                     >
-                      + Nuevo Cliente
+                      {clientTypeTab === 'prospecto' ? '+ Nuevo Prospecto' : '+ Nuevo Cliente'}
                     </button>
                   </div>
+                  
+                  {/* Pills selector on main form */}
+                  <div className="flex bg-secondary p-0.5 rounded-xl border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setClientTypeTab('prospecto')}
+                      className={`flex-1 py-1.5 text-center rounded-lg font-bold transition-all-custom cursor-pointer text-[10px] ${
+                        clientTypeTab === 'prospecto'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Prospecto (Lead)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setClientTypeTab('cliente')}
+                      className={`flex-1 py-1.5 text-center rounded-lg font-bold transition-all-custom cursor-pointer text-[10px] ${
+                        clientTypeTab === 'cliente'
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Cliente (Cerrado)
+                    </button>
+                  </div>
+
                   <select
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
                     className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer font-medium"
                     required
                   >
-                    <option value="">Seleccione un cliente...</option>
-                    {leads.map(lead => (
+                    <option value="">Seleccione {clientTypeTab === 'prospecto' ? 'un prospecto' : 'un cliente'}...</option>
+                    {leads.filter(lead => clientTypeTab === 'cliente' ? lead.status === 'convertido' : lead.status !== 'convertido').map(lead => (
                       <option key={lead.id} value={lead.id}>
                         {lead.first_name} {lead.last_name} {lead.company ? `(${lead.company})` : ''}
                       </option>
