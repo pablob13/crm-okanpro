@@ -138,7 +138,7 @@ export interface Product {
 }
 
 export type QuoteStatus = 'borrador' | 'enviada' | 'aceptada' | 'rechazada';
-export type ProjectType = 'residencial' | 'comercial' | 'corporativo' | 'mantenimiento' | 'otro';
+export type ProjectType = string;
 
 export interface Quote {
   id: string;

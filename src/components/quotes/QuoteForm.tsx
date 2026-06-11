@@ -45,7 +45,16 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
 
   // Form states
   const [title, setTitle] = useState(initialQuote?.title || 'Cotización de Proyecto');
-  const [projectType, setProjectType] = useState<ProjectType>(initialQuote?.project_type || 'residencial');
+  const isDefaultType = ['iluminación', 'sonido', 'desarrollo', 'seguridad'].includes(initialQuote?.project_type || 'sonido');
+  const [projectType, setProjectType] = useState<string>(
+    initialQuote?.project_type 
+      ? (isDefaultType ? initialQuote.project_type : 'otro')
+      : 'sonido'
+  );
+  const [customType, setCustomType] = useState<string>(
+    initialQuote?.project_type && !isDefaultType ? initialQuote.project_type : ''
+  );
+  const effectiveProjectType = projectType === 'otro' ? (customType.trim() || 'otro') : projectType;
   const [clientId, setClientId] = useState(initialQuote?.client_id || '');
   const [status, setStatus] = useState<QuoteStatus>(initialQuote?.status || 'borrador');
   const [notes, setNotes] = useState(initialQuote?.notes || '');
@@ -206,7 +215,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
       const quotePayload: Omit<Quote, 'id' | 'created_at' | 'updated_at'> = {
         client_id: clientId,
         title: title.trim(),
-        project_type: projectType,
+        project_type: effectiveProjectType,
         status,
         subtotal,
         discount: actualDiscount,
@@ -310,18 +319,31 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
                 {/* Project Type Select */}
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tipo de Proyecto</label>
-                  <select
-                    value={projectType}
-                    onChange={(e) => setProjectType(e.target.value as ProjectType)}
-                    className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer font-medium"
-                    required
-                  >
-                    <option value="residencial">Residencial</option>
-                    <option value="comercial">Comercial</option>
-                    <option value="corporativo">Corporativo</option>
-                    <option value="mantenimiento">Mantenimiento</option>
-                    <option value="otro">Otro</option>
-                  </select>
+                  <div className="flex flex-col gap-2">
+                    <select
+                      value={projectType}
+                      onChange={(e) => setProjectType(e.target.value)}
+                      className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer font-medium"
+                      required
+                    >
+                      <option value="iluminación">Iluminación</option>
+                      <option value="sonido">Sonido</option>
+                      <option value="desarrollo">Desarrollo</option>
+                      <option value="seguridad">Seguridad</option>
+                      <option value="otro">Otro (Especificar)</option>
+                    </select>
+
+                    {projectType === 'otro' && (
+                      <input
+                        type="text"
+                        value={customType}
+                        onChange={(e) => setCustomType(e.target.value)}
+                        placeholder="Escribe el concepto de proyecto..."
+                        className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium"
+                        required
+                      />
+                    )}
+                  </div>
                 </div>
 
                 {/* Client Select */}
@@ -630,7 +652,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
             <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">Proyecto / Propuesta</h3>
             <p className="text-sm font-extrabold text-slate-800">{title}</p>
-            <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Tipo: {projectType}</p>
+            <p className="text-[10px] font-bold text-slate-600 uppercase mt-1">Tipo: {effectiveProjectType}</p>
             <p className="text-xs text-slate-500 mt-2">Integración y configuración de audio multiroom, iluminación arquitectónica, redes de alta velocidad y automatización inteligente.</p>
           </div>
         </div>
