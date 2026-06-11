@@ -439,3 +439,82 @@ ON storage.objects FOR DELETE
 TO authenticated
 USING (bucket_id = 'product-images');
 
+-- 11. QUOTES & QUOTE ITEMS TABLES (Cotizaciones y Conceptos)
+CREATE TABLE IF NOT EXISTS public.quotes (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    client_id UUID REFERENCES public.leads(id) ON DELETE CASCADE NOT NULL,
+    title TEXT NOT NULL,
+    status TEXT DEFAULT 'borrador'::text NOT NULL,
+    subtotal DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
+    discount DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
+    tax DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
+    total DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.quote_items (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    quote_id UUID REFERENCES public.quotes(id) ON DELETE CASCADE NOT NULL,
+    product_id UUID REFERENCES public.products(id) ON DELETE SET NULL,
+    description TEXT NOT NULL,
+    quantity INTEGER DEFAULT 1 NOT NULL,
+    unit_price DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
+    total DECIMAL(12, 2) DEFAULT 0.00 NOT NULL
+);
+
+-- Habilitar RLS
+ALTER TABLE public.quotes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.quote_items ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de RLS para quotes
+DROP POLICY IF EXISTS "Permitir lectura de cotizaciones a autenticados" ON public.quotes;
+CREATE POLICY "Permitir lectura de cotizaciones a autenticados" 
+ON public.quotes FOR SELECT 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir inserción de cotizaciones a autenticados" ON public.quotes;
+CREATE POLICY "Permitir inserción de cotizaciones a autenticados" 
+ON public.quotes FOR INSERT 
+TO authenticated 
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir actualización de cotizaciones a autenticados" ON public.quotes;
+CREATE POLICY "Permitir actualización de cotizaciones a autenticados" 
+ON public.quotes FOR UPDATE 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir eliminación de cotizaciones a autenticados" ON public.quotes;
+CREATE POLICY "Permitir eliminación de cotizaciones a autenticados" 
+ON public.quotes FOR DELETE 
+TO authenticated 
+USING (true);
+
+-- Políticas de RLS para quote_items
+DROP POLICY IF EXISTS "Permitir lectura de conceptos a autenticados" ON public.quote_items;
+CREATE POLICY "Permitir lectura de conceptos a autenticados" 
+ON public.quote_items FOR SELECT 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir inserción de conceptos a autenticados" ON public.quote_items;
+CREATE POLICY "Permitir inserción de conceptos a autenticados" 
+ON public.quote_items FOR INSERT 
+TO authenticated 
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir actualización de conceptos a autenticados" ON public.quote_items;
+CREATE POLICY "Permitir actualización de conceptos a autenticados" 
+ON public.quote_items FOR UPDATE 
+TO authenticated 
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir eliminación de conceptos a autenticados" ON public.quote_items;
+CREATE POLICY "Permitir eliminación de conceptos a autenticados" 
+ON public.quote_items FOR DELETE 
+TO authenticated 
+USING (true);
+

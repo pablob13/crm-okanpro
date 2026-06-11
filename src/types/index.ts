@@ -136,3 +136,32 @@ export interface Product {
   created_at: string;
   updated_at: string;
 }
+
+export type QuoteStatus = 'borrador' | 'enviada' | 'aceptada' | 'rechazada';
+
+export interface Quote {
+  id: string;
+  client_id: string;
+  title: string;
+  status: QuoteStatus;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+
+  // Joins opcionales
+  lead?: Lead;
+}
+
+export interface QuoteItem {
+  id: string;
+  quote_id: string;
+  product_id: string | null;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+}

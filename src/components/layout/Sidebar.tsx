@@ -22,7 +22,8 @@ import {
   ChevronDown,
   ChevronUp,
   Handshake,
-  Package
+  Package,
+  FileText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,6 +53,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: SidebarProps) {
       ]
     },
     { name: 'Pipeline de Ventas', href: '/pipeline', icon: Kanban },
+    { name: 'Cotizaciones', href: '/quotes', icon: FileText },
     { name: 'Productos', href: '/products', icon: Package },
     { name: 'Tareas', href: '/tasks', icon: CheckSquare },
     { 

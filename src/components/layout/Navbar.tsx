@@ -15,17 +15,18 @@ export default function Navbar({ setMobileOpen }: NavbarProps) {
 
   // Obtener el título dinámico según la ruta
   const getPageTitle = () => {
-    switch (pathname) {
-      case '/': return 'Panel de Control (Dashboard)';
-      case '/leads': return 'Prospectos (Leads)';
-      case '/clients': return 'Cartera de Clientes';
-      case '/clients/closed': return 'Clientes Cerrados (Post-Venta)';
-      case '/pipeline': return 'Pipeline de Ventas';
-      case '/tasks': return 'Gestión de Tareas';
-      case '/manuals': return 'Manuales y Documentación';
-      case '/settings': return 'Configuración del Sistema';
-      default: return 'OkanPro CRM';
-    }
+    if (pathname === '/') return 'Panel de Control (Dashboard)';
+    if (pathname === '/leads') return 'Prospectos (Leads)';
+    if (pathname === '/clients') return 'Cartera de Clientes';
+    if (pathname === '/clients/closed') return 'Clientes Cerrados (Post-Venta)';
+    if (pathname === '/pipeline') return 'Pipeline de Ventas';
+    if (pathname === '/tasks') return 'Gestión de Tareas';
+    if (pathname === '/manuals') return 'Manuales y Documentación';
+    if (pathname === '/settings') return 'Configuración del Sistema';
+    if (pathname === '/quotes') return 'Cotizaciones';
+    if (pathname === '/quotes/new') return 'Nueva Cotización';
+    if (pathname?.startsWith('/quotes/edit')) return 'Editar Cotización';
+    return 'OkanPro CRM';
   };
 
   return (

@@ -1,4 +1,4 @@
-import { Profile, Lead, Opportunity, Task, Interaction, Manual, Expense, BankMovement, Product } from '@/types';
+import { Profile, Lead, Opportunity, Task, Interaction, Manual, Expense, BankMovement, Product, Quote, QuoteItem } from '@/types';
 
 // Perfil de prueba por defecto
 export const MOCK_USER: Profile = {
@@ -405,6 +405,67 @@ export const INITIAL_PRODUCTS: Product[] = [
   }
 ];
 
+// Cotizaciones iniciales para el modo demo
+export const INITIAL_QUOTES: Quote[] = [
+  {
+    id: 'quote-1',
+    client_id: 'lead-1',
+    title: 'Propuesta de Audio y CCTV',
+    status: 'enviada',
+    subtotal: 14898.00,
+    discount: 1000.00,
+    tax: 2223.68, // 16% of (14898 - 1000) = 2223.68
+    total: 16121.68,
+    notes: 'Sujeto a cambios sin previo aviso. Los equipos Sonos y Hikvision cuentan con 1 año de garantía.',
+    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'quote-2',
+    client_id: 'lead-2',
+    title: 'Cotización Sistema Lutron Caseta',
+    status: 'borrador',
+    subtotal: 3100.00,
+    discount: 0.00,
+    tax: 496.00,
+    total: 3596.00,
+    notes: 'No incluye instalación. Entrega estimada 3-5 días hábiles.',
+    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  }
+];
+
+// Conceptos de cotizaciones iniciales
+export const INITIAL_QUOTE_ITEMS: QuoteItem[] = [
+  {
+    id: 'qitem-1',
+    quote_id: 'quote-1',
+    product_id: 'prod-1',
+    description: 'Bocina Inteligente Sonos One Gen 2',
+    quantity: 2,
+    unit_price: 4999.00,
+    total: 9998.00
+  },
+  {
+    id: 'qitem-2',
+    quote_id: 'quote-1',
+    product_id: 'prod-3',
+    description: 'Camara IP Domo Hikvision 4MP',
+    quantity: 2,
+    unit_price: 2450.00,
+    total: 4900.00
+  },
+  {
+    id: 'qitem-3',
+    quote_id: 'quote-2',
+    product_id: 'prod-2',
+    description: 'Interruptor Atenuador Lutron Caseta',
+    quantity: 2,
+    unit_price: 1550.00,
+    total: 3100.00
+  }
+];
+
 // Utilidad de almacenamiento en LocalStorage para modo Demo
 const STORAGE_KEYS = {
   LEADS: 'okanpro_crm_leads',
@@ -416,7 +477,9 @@ const STORAGE_KEYS = {
   USERS: 'okanpro_crm_users',
   EXPENSES: 'okanpro_crm_expenses',
   BANK_MOVEMENTS: 'okanpro_crm_bank_movements',
-  PRODUCTS: 'okanpro_crm_products'
+  PRODUCTS: 'okanpro_crm_products',
+  QUOTES: 'okanpro_crm_quotes',
+  QUOTE_ITEMS: 'okanpro_crm_quote_items'
 };
 
 export const mockDb = {
@@ -570,6 +633,36 @@ export const mockDb = {
     }
   },
 
+  getQuotes: (): Quote[] => {
+    if (typeof window === 'undefined') return INITIAL_QUOTES;
+    const data = localStorage.getItem(STORAGE_KEYS.QUOTES);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(INITIAL_QUOTES));
+      return INITIAL_QUOTES;
+    }
+    return JSON.parse(data);
+  },
+  saveQuotes: (quotes: Quote[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(quotes));
+    }
+  },
+
+  getQuoteItems: (): QuoteItem[] => {
+    if (typeof window === 'undefined') return INITIAL_QUOTE_ITEMS;
+    const data = localStorage.getItem(STORAGE_KEYS.QUOTE_ITEMS);
+    if (!data) {
+      localStorage.setItem(STORAGE_KEYS.QUOTE_ITEMS, JSON.stringify(INITIAL_QUOTE_ITEMS));
+      return INITIAL_QUOTE_ITEMS;
+    }
+    return JSON.parse(data);
+  },
+  saveQuoteItems: (items: QuoteItem[]) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.QUOTE_ITEMS, JSON.stringify(items));
+    }
+  },
+
   reset: () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(STORAGE_KEYS.LEADS);
@@ -582,6 +675,8 @@ export const mockDb = {
       localStorage.removeItem(STORAGE_KEYS.EXPENSES);
       localStorage.removeItem(STORAGE_KEYS.BANK_MOVEMENTS);
       localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+      localStorage.removeItem(STORAGE_KEYS.QUOTES);
+      localStorage.removeItem(STORAGE_KEYS.QUOTE_ITEMS);
     }
   }
 };
