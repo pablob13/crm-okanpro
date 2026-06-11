@@ -376,7 +376,7 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Title */}
-                <div className="space-y-1.5">
+                <div className="md:col-span-2 space-y-1.5">
                   <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Título de la Cotización</label>
                   <input
                     type="text"
@@ -417,63 +417,66 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
                     )}
                   </div>
                 </div>
+              </div>
 
-                {/* Client Select */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+              {/* Destinatario Section */}
+              <div className="pt-4 border-t border-border/60 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
                     <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Destinatario</label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setQuickClientForm(prev => ({ ...prev, type: clientTypeTab }));
-                        setIsCreateClientModalOpen(true);
-                      }}
-                      className="text-primary hover:text-primary/80 text-[10px] font-bold cursor-pointer transition-colors"
-                    >
-                      {clientTypeTab === 'prospecto' ? '+ Nuevo Prospecto' : '+ Nuevo Cliente'}
-                    </button>
-                  </div>
-                  
-                  {/* Pills selector on main form */}
-                  <div className="flex bg-secondary p-0.5 rounded-xl border border-border">
-                    <button
-                      type="button"
-                      onClick={() => setClientTypeTab('prospecto')}
-                      className={`flex-1 py-1.5 text-center rounded-lg font-bold transition-all-custom cursor-pointer text-[10px] ${
-                        clientTypeTab === 'prospecto'
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Prospecto (Lead)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setClientTypeTab('cliente')}
-                      className={`flex-1 py-1.5 text-center rounded-lg font-bold transition-all-custom cursor-pointer text-[10px] ${
-                        clientTypeTab === 'cliente'
-                          ? 'bg-primary text-primary-foreground shadow-sm'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Cliente (Cerrado)
-                    </button>
+                    
+                    {/* Pills selector on main form */}
+                    <div className="flex bg-secondary p-0.5 rounded-lg border border-border w-48">
+                      <button
+                        type="button"
+                        onClick={() => setClientTypeTab('prospecto')}
+                        className={`flex-1 py-1 text-center rounded-md font-bold transition-all-custom cursor-pointer text-[9px] ${
+                          clientTypeTab === 'prospecto'
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Prospecto
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setClientTypeTab('cliente')}
+                        className={`flex-1 py-1 text-center rounded-md font-bold transition-all-custom cursor-pointer text-[9px] ${
+                          clientTypeTab === 'cliente'
+                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Cliente
+                      </button>
+                    </div>
                   </div>
 
-                  <select
-                    value={clientId}
-                    onChange={(e) => setClientId(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer font-medium"
-                    required
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuickClientForm(prev => ({ ...prev, type: clientTypeTab }));
+                      setIsCreateClientModalOpen(true);
+                    }}
+                    className="text-primary hover:text-primary/80 text-[10px] font-bold cursor-pointer transition-colors flex items-center gap-1"
                   >
-                    <option value="">Seleccione {clientTypeTab === 'prospecto' ? 'un prospecto' : 'un cliente'}...</option>
-                    {leads.filter(lead => clientTypeTab === 'cliente' ? lead.status === 'convertido' : lead.status !== 'convertido').map(lead => (
-                      <option key={lead.id} value={lead.id}>
-                        {lead.first_name} {lead.last_name} {lead.company ? `(${lead.company})` : ''}
-                      </option>
-                    ))}
-                  </select>
+                    + Nuevo
+                  </button>
                 </div>
+
+                <select
+                  value={clientId}
+                  onChange={(e) => setClientId(e.target.value)}
+                  className="w-full p-3 rounded-xl border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer font-medium"
+                  required
+                >
+                  <option value="">Seleccione {clientTypeTab === 'prospecto' ? 'un prospecto' : 'un cliente'}...</option>
+                  {leads.filter(lead => clientTypeTab === 'cliente' ? lead.status === 'convertido' : lead.status !== 'convertido').map(lead => (
+                    <option key={lead.id} value={lead.id}>
+                      {lead.first_name} {lead.last_name} {lead.company ? `(${lead.company})` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
