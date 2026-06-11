@@ -85,9 +85,9 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
           // If creating new, add one empty row by default
           addBlankItem();
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error cargando catálogos para cotizador:', err);
-        setErrorMsg('Error al cargar la información del sistema.');
+        setErrorMsg('Error al cargar la información del sistema: ' + (err?.message || String(err)));
       } finally {
         setLoadingData(false);
       }
