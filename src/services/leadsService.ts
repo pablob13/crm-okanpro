@@ -7,7 +7,7 @@ export const leadsService = {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('leads')
-        .select('*, assigned_profile:profiles(*)')
+        .select('*, assigned_profile:profiles!assigned_to(*)')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -21,7 +21,7 @@ export const leadsService = {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('leads')
-        .select('*, assigned_profile:profiles(*)')
+        .select('*, assigned_profile:profiles!assigned_to(*)')
         .eq('id', id)
         .single();
       
