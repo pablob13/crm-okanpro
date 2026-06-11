@@ -907,15 +907,30 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
 
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tipo de Registro</label>
-                <select
-                  value={quickClientForm.type}
-                  onChange={(e) => setQuickClientForm(prev => ({ ...prev, type: e.target.value as 'prospecto' | 'cliente' }))}
-                  className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer font-semibold"
-                  required
-                >
-                  <option value="prospecto">Prospecto (Lead)</option>
-                  <option value="cliente">Cliente (Ganado/Cerrado)</option>
-                </select>
+                <div className="flex bg-secondary p-1 rounded-xl border border-border">
+                  <button
+                    type="button"
+                    onClick={() => setQuickClientForm(prev => ({ ...prev, type: 'prospecto' }))}
+                    className={`flex-1 py-2 text-center rounded-lg font-bold transition-all-custom cursor-pointer text-xs ${
+                      quickClientForm.type === 'prospecto'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Prospecto (Lead)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickClientForm(prev => ({ ...prev, type: 'cliente' }))}
+                    className={`flex-1 py-2 text-center rounded-lg font-bold transition-all-custom cursor-pointer text-xs ${
+                      quickClientForm.type === 'cliente'
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Cliente (Cerrado)
+                  </button>
+                </div>
               </div>
 
               {/* Action Buttons */}
