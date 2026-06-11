@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Quote, QuoteItem, Lead, Product, QuoteStatus, ProjectType } from '@/types';
+import { Quote, QuoteItem, Lead, Product, QuoteStatus, ProjectType, LeadStatus } from '@/types';
 import { leadsService } from '@/services/leadsService';
 import { productsService } from '@/services/productsService';
 import { 
@@ -14,7 +14,8 @@ import {
   AlertCircle,
   FileText,
   User,
-  ShoppingBag
+  ShoppingBag,
+  X
 } from 'lucide-react';
 
 interface QuoteFormProps {
@@ -59,6 +60,68 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
   const [status, setStatus] = useState<QuoteStatus>(initialQuote?.status || 'borrador');
   const [notes, setNotes] = useState(initialQuote?.notes || '');
   const [discount, setDiscount] = useState<number>(initialQuote?.discount || 0);
+
+  // Quick Client Creation States
+  const [isCreateClientModalOpen, setIsCreateClientModalOpen] = useState(false);
+  const [quickClientSaving, setQuickClientSaving] = useState(false);
+  const [quickClientError, setQuickClientError] = useState('');
+  const [quickClientForm, setQuickClientForm] = useState({
+    first_name: '',
+    last_name: '',
+    company: '',
+    email: '',
+    phone: '',
+    type: 'prospecto' as 'prospecto' | 'cliente'
+  });
+
+  const handleQuickClientSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickClientError('');
+    setQuickClientSaving(true);
+
+    try {
+      if (!quickClientForm.first_name.trim() || !quickClientForm.last_name.trim()) {
+        throw new Error('Nombre y Apellido son obligatorios.');
+      }
+
+      // Map prospecto/cliente to lead status
+      const statusValue: LeadStatus = quickClientForm.type === 'cliente' ? 'convertido' : 'nuevo';
+
+      const payload = {
+        first_name: quickClientForm.first_name.trim(),
+        last_name: quickClientForm.last_name.trim(),
+        company: quickClientForm.company.trim() || null,
+        email: quickClientForm.email.trim() || null,
+        phone: quickClientForm.phone.trim() || null,
+        status: statusValue,
+        source: 'directo',
+        assigned_to: null,
+        created_by: null
+      };
+
+      const newLead = await leadsService.createLead(payload);
+      
+      // Update leads list and select the new lead
+      setLeads(prev => [newLead, ...prev]);
+      setClientId(newLead.id);
+      
+      // Reset form and close modal
+      setQuickClientForm({
+        first_name: '',
+        last_name: '',
+        company: '',
+        email: '',
+        phone: '',
+        type: 'prospecto'
+      });
+      setIsCreateClientModalOpen(false);
+    } catch (err: any) {
+      console.error('Error al crear cliente rápido:', err);
+      setQuickClientError(err.message || 'Ocurrió un error al crear el cliente.');
+    } finally {
+      setQuickClientSaving(false);
+    }
+  };
 
   // Quote items state
   const [items, setItems] = useState<FormItem[]>([]);
@@ -348,7 +411,16 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
 
                 {/* Client Select */}
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Cliente (Prospecto)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Cliente (Prospecto)</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateClientModalOpen(true)}
+                      className="text-primary hover:text-primary/80 text-[10px] font-bold cursor-pointer"
+                    >
+                      + Nuevo Cliente
+                    </button>
+                  </div>
                   <select
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
@@ -745,6 +817,128 @@ export default function QuoteForm({ initialQuote, onSubmit, isEdit = false }: Qu
           </div>
         </div>
       </div>
+
+      {/* Quick Create Client Modal */}
+      {isCreateClientModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm no-print">
+          <div className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-6 animate-fade-in text-xs">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-border">
+              <h3 className="font-extrabold text-foreground text-sm flex items-center gap-2">
+                <User size={16} className="text-primary" />
+                Crear Cliente o Prospecto
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsCreateClientModalOpen(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Error Alert */}
+            {quickClientError && (
+              <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px]">
+                {quickClientError}
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleQuickClientSubmit} className="space-y-4 pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nombre</label>
+                  <input
+                    type="text"
+                    required
+                    value={quickClientForm.first_name}
+                    onChange={(e) => setQuickClientForm(prev => ({ ...prev, first_name: e.target.value }))}
+                    placeholder="ej. Juan"
+                    className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Apellido</label>
+                  <input
+                    type="text"
+                    required
+                    value={quickClientForm.last_name}
+                    onChange={(e) => setQuickClientForm(prev => ({ ...prev, last_name: e.target.value }))}
+                    placeholder="ej. Pérez"
+                    className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Empresa (Opcional)</label>
+                <input
+                  type="text"
+                  value={quickClientForm.company}
+                  onChange={(e) => setQuickClientForm(prev => ({ ...prev, company: e.target.value }))}
+                  placeholder="ej. Construcciones Beta"
+                  className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    value={quickClientForm.email}
+                    onChange={(e) => setQuickClientForm(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="correo@ejemplo.com"
+                    className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Teléfono</label>
+                  <input
+                    type="text"
+                    value={quickClientForm.phone}
+                    onChange={(e) => setQuickClientForm(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+52 55..."
+                    className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tipo de Registro</label>
+                <select
+                  value={quickClientForm.type}
+                  onChange={(e) => setQuickClientForm(prev => ({ ...prev, type: e.target.value as 'prospecto' | 'cliente' }))}
+                  className="w-full p-2.5 rounded-lg border border-border bg-background text-foreground text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer font-semibold"
+                  required
+                >
+                  <option value="prospecto">Prospecto (Lead)</option>
+                  <option value="cliente">Cliente (Ganado/Cerrado)</option>
+                </select>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border mt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateClientModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-border bg-background hover:bg-secondary text-muted-foreground font-semibold cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={quickClientSaving}
+                  className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold shadow-md shadow-primary/20 hover:bg-primary/95 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {quickClientSaving ? 'Guardando...' : 'Crear'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
